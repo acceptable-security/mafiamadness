@@ -1,0 +1,123 @@
+{
+    "player": {
+        "x": 0,
+        "y": 0,
+
+        "images": {
+            "root": [
+                "assets/png/character/front.png"
+            ],
+            "walking": [
+                "assets/png/character/walk/walk0001.png",
+                "assets/png/character/walk/walk0002.png",
+                "assets/png/character/walk/walk0003.png",
+                "assets/png/character/walk/walk0004.png",
+                "assets/png/character/walk/walk0005.png",
+                "assets/png/character/walk/walk0006.png",
+                "assets/png/character/walk/walk0007.png",
+                "assets/png/character/walk/walk0008.png",
+                "assets/png/character/walk/walk0009.png",
+                "assets/png/character/walk/walk0010.png",
+                "assets/png/character/walk/walk0011.png"
+            ],
+            "jumping": [
+                "assets/png/character/jump.png"
+            ],
+            "falling": [
+                "assets/png/character/jump.png"
+            ]
+        }
+    },
+
+    "objects": [
+        {
+            "image": "assets/png/block.png",
+            "x": 120,
+            "y": 120,
+            "type": "static"
+        },
+        {
+            "image": "assets/png/coin_silver.png",
+            "x": 300,
+            "y": 300,
+            "type": "static",
+            "radius": 20
+        }
+    ],
+
+    "background": {
+        "0.5": [
+            {
+                "img": "assets/png/cloud_1.png",
+                "x": 5,
+                "y": 5
+            },
+            {
+                "img": "assets/png/cloud_1.png",
+                "x": 31,
+                "y": 64
+            },
+            {
+                "img": "assets/png/cloud_1.png",
+                "x": 93,
+                "y": 237
+            },
+            {
+                "img": "assets/png/cloud_1.png",
+                "x": 92,
+                "y": 823
+            },
+            {
+                "img": "assets/png/cloud_1.png",
+                "x": 313,
+                "y": 182
+            }
+        ],
+        "3": [
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 127,
+                "y": 731
+            },
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 213,
+                "y": 823
+            },
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 128,
+                "y": 612
+            },
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 171,
+                "y": 812
+            },
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 112,
+                "y": 181
+            },
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 234,
+                "y": 234
+            },
+            {
+                "img": "assets/png/cloud_2.png",
+                "x": 923,
+                "y": 672
+            }
+        ]
+    },
+
+    "camera": {
+        "__bounds": {
+            "x1": 0,
+            "y1": 0,
+            "x2": 1024,
+            "y2": 1024
+        }
+    }
+}
