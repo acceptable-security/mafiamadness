@@ -33,8 +33,8 @@ function Box:createPhysics(world)
     self.body:setUserData(self)
 end
 
-function Box:draw()
-    if self.body then
+function Box:draw(prediction)
+    if self.body and prediction then
         love.graphics.draw(self.image, math.floor(self.body:getX() + 0.5), math.floor(self.body:getY() + 0.5), self.body:getAngle(), 1, 1, math.floor((self.image:getWidth()/2) + 0.5), math.floor((self.image:getHeight()/2) + 0.5))
     else
         love.graphics.draw(self.image, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, 1, 1, math.floor((self.image:getWidth()/2) + 0.5), math.floor((self.image:getHeight()/2) + 0.5))

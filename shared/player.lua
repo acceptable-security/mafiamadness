@@ -119,12 +119,13 @@ function Player:update(dt)
     end
 end
 
-function Player:draw()
+function Player:draw(prediction)
     if self.image[self.state][self.imageState] then
         local img = self.image[self.state][self.imageState]
 
-        if self.body then
-            love.graphics.draw(img, math.floor(self.body:getX() + 0.5), math.floor(self.body:getY() + 0.5), self.body:getAngle(), 1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
+        if self.body and prediction then
+            local x, _ = self.body:getLinearVelocity()
+            love.graphics.draw(img, math.floor(self.body:getX() + 0.5), math.floor(self.body:getY() + 0.5), self.body:getAngle(), x  > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
         else
             love.graphics.draw(img, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, self.velX > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
         end

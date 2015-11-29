@@ -64,7 +64,7 @@ function love.load(arg)
                     elseif d > 0.1 then
                         objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
                     end
-                    
+
                     objects[data.id].body:setLinearVelocity(data.vx, data.vy)
                     objects[data.id].body:setAngle(data.a)
                 else
@@ -164,7 +164,7 @@ function love.draw(dt)
 
     for _, v in pairs(objects) do
         if v and v.draw then
-            v:draw()
+            v:draw(prediction)
         end
     end
 
