@@ -103,20 +103,7 @@ function love.load(args)
                 end
             end
 
-            if data.up then
-                local _, y = d.obj.body:getLinearVelocity()
-                if math.abs(y) < 7 then
-                    d.obj.body:applyLinearImpulse(0, d.obj.body:getMass() * love.physics.getMeter()*-5)
-                end
-            end
-
-            if data.left then
-                d.obj.body:applyLinearImpulse(-20 * d.obj.body:getMass(), 0)
-            end
-
-            if data.right then
-                d.obj.body:applyLinearImpulse(20 * d.obj.body:getMass(), 0)
-            end
+            d.obj:applyMovement(data)
         end;
     }
 

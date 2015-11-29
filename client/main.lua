@@ -56,13 +56,24 @@ function love.load(arg)
         updateCallback = function(data)
             if objects[data.id] then
                 if objects[data.id].body and prediction then
-                    dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
-                    d = (dx^2 + dy^2)^0.5
+                    if data.id ~= myID then
+                        dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
+                        d = (dx^2 + dy^2)^0.5
 
-                    if d > 2.0 then
-                        objects[data.id].body:setPosition(data.px, data.py)
-                    elseif d > 0.1 then
-                        objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
+                        if d > 2.0 then
+                            objects[data.id].body:setPosition(data.px, data.py)
+                        elseif d > 0.1 then
+                            objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
+                        end
+                    else
+                        objects[myID].body:setPosition(data.px, data.py)
+
+                        for _, k in ipairs(lastMovements) do
+                            objects[myID]:applyMovement(k)
+                            -- ourWorld:update(0.017)
+                        end
+
+                        lastMovements = {}
                     end
 
                     objects[data.id].body:setLinearVelocity(data.vx, data.vy)
@@ -95,6 +106,7 @@ function love.load(arg)
     gravity = 9.81
     ourWorld = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
     prediction = true
+    lastMovements = {}
 end
 
 function love.keypressed(k)
@@ -121,32 +133,26 @@ function love.update(dt)
     if love.keyboard.isDown('w') then
         empty = false
         mvt.up = 1
-
-        if prediction then
-            local _, y = objects[myID].body:getLinearVelocity()
-            if math.abs(y) < 7 then
-                objects[myID].body:applyLinearImpulse(0, objects[myID].body:getMass() * love.physics.getMeter()*-5)
-            end
-        end
     end
     if love.keyboard.isDown('a') then
         empty = false
         mvt.left = 1
-
-        if predicton then
-            objects[myID].body:applyLinearImpulse(-20 * objects[myID].body:getMass(), 0)
-        end
     end
     if love.keyboard.isDown('d') then
         empty = false
         mvt.right = 1
+    end
 
-        if prediction then
-            objects[myID].body:applyLinearImpulse(20 * objects[myID].body:getMass(), 0)
-        end
+    if prediction and myID then
+        objects[myID]:applyMovement(mvt)
     end
 
     ourWorld:update(dt)
+
+    table.insert(lastMovements, {
+        mvt = mvt;
+        dt = dt;
+    })
 
     if not empty then
         net:move(mvt)
