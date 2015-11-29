@@ -102,7 +102,7 @@ function love.keypressed(k)
         net:close()
         love.event.quit()
     elseif k == "p" then
-        predicton = not prediction
+        prediction = not prediction
     end
 end
 
@@ -160,6 +160,12 @@ function love.draw(dt)
 
     if not connected then
         love.graphics.print('Waiting for Connection', (love.graphics.getWidth()/2), love.graphics.getHeight()/2)
+    end
+
+    if prediction then
+        love.graphics.print("Prediction ON", 0, 0)
+    else
+        love.graphics.print("Prediction OFF", 0, 0)
     end
 
     for _, v in pairs(objects) do
