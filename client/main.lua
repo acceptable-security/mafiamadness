@@ -54,10 +54,10 @@ function love.load(arg)
         end;
 
         updateCallback = function(data)
-            if love.keyboard.isPressed("l") then
+            if love.keyboard.isDown("l") then
                 return
             end
-            
+
             if objects[data.id] then
                 if objects[data.id].body then
                     dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
