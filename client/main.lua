@@ -5,6 +5,7 @@ local Net = require("client/net")
 
 local debug = true
 local paused = false
+local myID = nil
 -- local ui = nil
 
 function love.load(arg)
@@ -18,7 +19,6 @@ function love.load(arg)
     -- }
 
     objects = {}
-    myID = nil
 
     net = Net.new {
         connectCallback = function()
@@ -32,11 +32,11 @@ function love.load(arg)
         end;
 
         creationCallback = function(data)
-            if myID == nil then
+            local type = Entities.entities[data.type]
+
+            if not myID then
                 myID = data.id
             end
-
-            local type = Entities.entities[data.type]
 
             objects[data.id] = type.new {
                 x = data.px;
@@ -53,7 +53,7 @@ function love.load(arg)
 
         updateCallback = function(data)
             if objects[data.id] then
-                if objects[data.id].body then
+                if objects[data.id].body and prediction then
                     objects[data.id].body:setPosition(data.px, data.py)
                     objects[data.id].body:setLinearVelocity(data.vx, data.vy)
                     objects[data.id].body:setAngle(data.a)
@@ -84,6 +84,16 @@ function love.load(arg)
     love.physics.setMeter(64)
     gravity = 9.81
     ourWorld = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
+    prediction = true
+end
+
+function love.keypressed(k)
+    if k == "escape" then
+        net:close()
+        love.event.quit()
+    elseif k == "p" then
+        predicton = not prediction
+    end
 end
 
 function love.update(dt)
@@ -98,21 +108,32 @@ function love.update(dt)
 
     local empty = true
 
-    if love.keyboard.isDown("escape") then
-        net:close()
-        love.event.quit()
-    end
     if love.keyboard.isDown('w') then
         empty = false
         mvt.up = 1
+
+        if prediction then
+            local _, y = objects[myID].body:getLinearVelocity()
+            if math.abs(y) < 7 then
+                objects[myID].body:applyLinearImpulse(0, objects[myID].body:getMass() * love.physics.getMeter()*-5)
+            end
+        end
     end
     if love.keyboard.isDown('a') then
         empty = false
         mvt.left = 1
+
+        if predicton then
+            objects[myID].body:applyLinearImpulse(-20 * objects[myID].body:getMass(), 0)
+        end
     end
     if love.keyboard.isDown('d') then
         empty = false
         mvt.right = 1
+
+        if prediction then
+            objects[myID].body:applyLinearImpulse(20 * objects[myID].body:getMass(), 0)
+        end
     end
 
     if not empty then
