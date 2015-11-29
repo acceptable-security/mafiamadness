@@ -1,6 +1,6 @@
 local Box = {
     type = "box1";
-    image = "assets/png/block.png";
+    image = love.graphics.newImage("shared/assets/png/block.png");
 }
 
 Box.__index = Box

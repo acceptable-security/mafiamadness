@@ -32,9 +32,12 @@ ffi.cdef[[
 
 ffi.cdef[[
     typedef struct {
-        char dir;
+        bool up;
+        bool left;
+        bool right;
     } movement_pkt;
 ]]
+
 
 ffi.cdef[[
     typedef struct {
@@ -80,7 +83,6 @@ function Net.new(self)
     end
 
     self.host = enet.host_create(self.ip, nil, 10)
-    print("HOSTING")
     self.server = nil
     self.connected = false
 
@@ -89,18 +91,17 @@ end
 
 function Net:create(peer, id, obj)
     local type = nil
-    print("CREATE")
     for k, v in ipairs(Entities.entities) do
         if v.type == obj.type then
-            print("TYPEFOUND")
             type = k
         end
     end
 
     if type == nil then
-        print("ERROR!!!")
         error("Unable to identify type " .. obj.type)
+        return
     end
+
 
     local data = ffi.new(ffi.typeof("creation_pkt"))
 
@@ -110,8 +111,7 @@ function Net:create(peer, id, obj)
     data.py = obj.body:getY()
     data.vx, data.vy = obj.body:getLinearVelocity()
     data.a = obj.body:getAngle()
-    print("SENT")
-    print(peer)
+
     peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid)
 end
 
@@ -138,7 +138,6 @@ end
 function Net:parse(peer, channel, data)
     if channel == connection_pktid then
         if self.joinCallback then
-            print("JOIN")
             local data = ffi.cast(ffi.typeof("creation_pkt*"), data)[0]
             self.creationCallback(peer, data)
         end

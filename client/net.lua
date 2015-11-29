@@ -31,7 +31,9 @@ ffi.cdef[[
 
 ffi.cdef[[
     typedef struct {
-        char dir;
+        bool up;
+        bool left;
+        bool right;
     } movement_pkt;
 ]]
 
@@ -106,7 +108,9 @@ end
 function Net:move(mvt)
     local data = ffi.new(ffi.typeof("movement_pkt"))
 
-    data.dir = bit.bor(bit.lshift(bit.band(mvt.up, 0x1), 3), bit.bor(bit.lshift(bit.band(mvt.down, 0x1), 2), bit.lshift(bit.band(mvt.left, 0x1), 1)), bit.band(mvt.right, 0x1))
+    data.up = mvt.up
+    data.left = mvt.left
+    data.right = mvt.right
 
     self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), movement_pktid)
 end
@@ -114,7 +118,6 @@ end
 function Net:parse(channel, data)
     if channel == 0 then
         if self.creationCallback then
-            print("CREATE")
             local data = ffi.cast(ffi.typeof("creation_pkt*"), data)[0]
             self.creationCallback(data)
         end
@@ -125,7 +128,6 @@ function Net:parse(channel, data)
         end
     elseif channel == destruction_pktid then
         if self.destructionCallback then
-            print("DESTROY")
             local data = ffi.cast(ffi.typeof("destruction_pkt*"), data)[0]
             self.destructionCallback(data)
         end

@@ -1,7 +1,7 @@
 -- local UI = require("ui")
-local Camera = require("camera")
+local Camera = require("client/camera")
 local Entities = require("shared/entities")
-local Net = require("net")
+local Net = require("client/net")
 
 local debug = true
 local paused = false
@@ -32,9 +32,6 @@ function love.load(arg)
         end;
 
         creationCallback = function(data)
-            print("AYYY")
-            print(data)
-
             if myID == nil then
                 myID = data.id
             end
@@ -77,9 +74,7 @@ end
 
 function love.update(dt)
     net:read()
-end
 
-function love.keypressed(k)
     local mvt = {
         up = 0;
         left = 0;
@@ -89,15 +84,16 @@ function love.keypressed(k)
 
     local empty = true
 
-    if k == 'escape' then
+    if love.keyboard.isDown("escape") then
+        net:close()
         love.event.quit()
-    elseif k == 'w' or k == 'up' then
+    elseif love.keyboard.isDown('w') then
         empty = false
         mvt.up = 1
-    elseif k == 'a' or k == 'left' then
+    elseif love.keyboard.isDown('a') then
         empty = false
         mvt.left = 1
-    elseif k == 'd' or k == 'right' then
+    elseif love.keyboard.isDown('d') then
         empty = false
         mvt.right = 1
     end
@@ -116,11 +112,8 @@ function love.draw(dt)
         love.graphics.print('Waiting for Connection', (love.graphics.getWidth()/2), love.graphics.getHeight()/2)
     end
 
-    print(#objects)
-
     for _, v in pairs(objects) do
-        print(v)
-        if v.draw then
+        if v and v.draw then
             v:draw()
         end
     end
