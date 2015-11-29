@@ -54,6 +54,10 @@ function love.load(arg)
         end;
 
         updateCallback = function(data)
+            if love.keyboard.isPressed("l") then
+                return
+            end
+            
             if objects[data.id] then
                 if objects[data.id].body then
                     dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
@@ -138,7 +142,7 @@ function love.update(dt)
         mvt.right = 1
     end
 
-    if not empty and prediction and myID then
+    if prediction and myID then
         objects[myID]:applyMovement(mvt)
 
         ourWorld:update(0.017)
