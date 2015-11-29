@@ -136,6 +136,8 @@ function love.update(dt)
         end
     end
 
+    ourWorld:update(dt)
+
     if not empty then
         net:move(mvt)
     end
