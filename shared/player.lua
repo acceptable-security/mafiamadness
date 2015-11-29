@@ -59,10 +59,9 @@ function Player:createPhysics(world)
 
     self.body = love.physics.newBody(world, self.x, self.y, "dynamic")
     self.shape = love.physics.newRectangleShape(0, 0, self.w, self.h)
-    self.fixture = love.physics.newFixture(self.body, self.shape, self.density or 1)
+    self.fixture = love.physics.newFixture(self.body, self.shape, 1)
 
     self.body:setFixedRotation(true)
-    self.fixture:setFriction(5)
     self.body:setUserData(self)
 end
 

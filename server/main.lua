@@ -99,7 +99,6 @@ function love.load(args)
             for k, v in ipairs(players) do
                 if v.peer == peer then
                     d = v
-                    -- table.remove(players, k)
                     break
                 end
             end
@@ -128,17 +127,19 @@ function love.keypressed(k)
     if k == 'escape' then
         love.event.quit()
     elseif k == 'w' then
-        createObject(Entities.entities[1], { x = math.random(100, 1000); y = math.random(100, 1000); })
+        createObject(Entities.entities[1], { x = math.random(100, 1000); y = math.random(100, 300); })
     end
 end
 
 function love.update(dt)
-    world:update(dt)
+    world:update(0.017)
     net:listen()
 
     for _, k in ipairs(players) do
         for _, o in ipairs(objects) do
-            net:update(k.peer, o.objectID, o.obj)
+            if not o.static then
+                net:update(k.peer, o.objectID, o.obj)
+            end
         end
 
         for _, o in ipairs(players) do
@@ -149,4 +150,5 @@ end
 
 function love.draw(dt)
     love.graphics.print(#players .. " Players Active")
+    love.graphics.print(objectID .. " current Object ID", 0, 10)
 end

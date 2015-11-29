@@ -1,5 +1,6 @@
 local Box = {
     type = "box1";
+    static = true;
     image = love.graphics.newImage("shared/assets/png/block.png");
 }
 
@@ -25,7 +26,7 @@ function Box:createPhysics(world)
 
     self.body = love.physics.newBody(world, self.x, self.y, "static")
     self.shape = love.physics.newRectangleShape(0, 0, self.w, self.h)
-    self.fixture = love.physics.newFixture(self.body, self.shape, self.density or 1)
+    self.fixture = love.physics.newFixture(self.body, self.shape, 1)
 
     self.body:setFixedRotation(true)
     self.fixture:setFriction(5)

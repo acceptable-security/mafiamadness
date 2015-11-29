@@ -119,10 +119,18 @@ function Net:update(peer, id, obj)
     local data = ffi.new(ffi.typeof("update_pkt"))
 
     data.id = id
-    data.px = obj.body:getX()
-    data.py = obj.body:getY()
+    data.px = math.floor(obj.body:getX() + 0.5)
+    data.py = math.floor(obj.body:getY() + 0.5)
     data.vx, data.vy = obj.body:getLinearVelocity()
+    data.vx = math.floor(data.vx + 0.5)
+    data.vy = math.floor(data.vy + 0.5)
     data.a = obj.body:getAngle()
+
+    -- obj._px = data.px
+    -- obj._py = data.py
+    -- obj._vx = data.vx
+    -- obj._vy = data.vy
+    -- obj._a = data.a
 
     peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), update_pktid)
 end

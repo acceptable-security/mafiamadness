@@ -87,13 +87,16 @@ function love.update(dt)
     if love.keyboard.isDown("escape") then
         net:close()
         love.event.quit()
-    elseif love.keyboard.isDown('w') then
+    end
+    if love.keyboard.isDown('w') then
         empty = false
         mvt.up = 1
-    elseif love.keyboard.isDown('a') then
+    end
+    if love.keyboard.isDown('a') then
         empty = false
         mvt.left = 1
-    elseif love.keyboard.isDown('d') then
+    end
+    if love.keyboard.isDown('d') then
         empty = false
         mvt.right = 1
     end
