@@ -112,7 +112,7 @@ function Net:create(peer, id, obj)
     data.vx, data.vy = obj.body:getLinearVelocity()
     data.a = obj.body:getAngle()
 
-    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid)
+    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid, "unreliable")
 end
 
 function Net:update(peer, id, obj)
@@ -132,7 +132,7 @@ function Net:update(peer, id, obj)
     -- obj._vy = data.vy
     -- obj._a = data.a
 
-    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), update_pktid)
+    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), update_pktid, "unreliable")
 end
 
 function Net:destroy(peer, id)
@@ -140,7 +140,7 @@ function Net:destroy(peer, id)
 
     data.id = id
 
-    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), destruction_pktid)
+    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), destruction_pktid, "unreliable")
 end
 
 function Net:parse(peer, channel, data)

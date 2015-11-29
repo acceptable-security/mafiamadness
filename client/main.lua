@@ -3,6 +3,8 @@ local Camera = require("client/camera")
 local Entities = require("shared/entities")
 local Net = require("client/net")
 
+require("client/math")
+
 local debug = true
 local paused = false
 local myID = nil
@@ -54,7 +56,15 @@ function love.load(arg)
         updateCallback = function(data)
             if objects[data.id] then
                 if objects[data.id].body and prediction then
-                    objects[data.id].body:setPosition(data.px, data.py)
+                    dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
+                    d = (dx^2 + dy^2)^0.5
+
+                    if d > 2.0 then
+                        objects[data.id].body:setPosition(data.px, data.py)
+                    elseif d > 0.1 then
+                        objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
+                    end
+                    
                     objects[data.id].body:setLinearVelocity(data.vx, data.vy)
                     objects[data.id].body:setAngle(data.a)
                 else

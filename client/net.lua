@@ -102,7 +102,7 @@ function Net:join(name, ver)
     data.name = ffi.string(ffi.new("char[32]", name), 32)
     data.ver = ver
 
-    self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid)
+    self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid, "unreliable")
 end
 
 function Net:move(mvt)
@@ -112,7 +112,7 @@ function Net:move(mvt)
     data.left = mvt.left
     data.right = mvt.right
 
-    self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), movement_pktid)
+    self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), movement_pktid, "unreliable")
 end
 
 function Net:parse(channel, data)
