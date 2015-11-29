@@ -56,21 +56,20 @@ function love.load(arg)
         updateCallback = function(data)
             if objects[data.id] then
                 if objects[data.id].body and prediction then
-                    if data.id ~= myID then
-                        dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
-                        d = (dx^2 + dy^2)^0.5
+                    dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
+                    d = (dx^2 + dy^2)^0.5
 
-                        if d > 2.0 then
-                            objects[data.id].body:setPosition(data.px, data.py)
-                        elseif d > 0.1 then
-                            objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
-                        end
-                    else
+                    if d > 2.0 then
+                        objects[data.id].body:setPosition(data.px, data.py)
+                    elseif d > 0.1 then
+                        objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
+                    end
+
+                    if data.id == myID then
                         objects[myID].body:setPosition(data.px, data.py)
 
                         for _, k in ipairs(lastMovements) do
                             objects[myID]:applyMovement(k)
-                            -- ourWorld:update(0.017)
                         end
 
                         lastMovements = {}
@@ -93,7 +92,8 @@ function love.load(arg)
         end;
 
         destructionCallback = function(data)
-            objects[data.id] = nil
+            -- objects[data.id] = nil
+            table.remove(objects, data.id)
         end;
     }
 
@@ -143,7 +143,7 @@ function love.update(dt)
         mvt.right = 1
     end
 
-    if prediction and myID then
+    if not empty and prediction and myID then
         objects[myID]:applyMovement(mvt)
     end
 
