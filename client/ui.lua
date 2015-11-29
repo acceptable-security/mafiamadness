@@ -4,9 +4,9 @@ local UI = {
     timer = "00:00";
     transparency = 0.6;
 
-    defaultFont = love.graphics.newFont("assets/fonts/Vera.ttf");
-    mafiaFont = love.graphics.newFont("assets/fonts/LaffRiotNF.ttf", 50);
-    clockFont = love.graphics.newFont("assets/fonts/Clocker.ttf", 24);
+    defaultFont = love.graphics.newFont("../assets/fonts/Vera.ttf");
+    mafiaFont = love.graphics.newFont("../assets/fonts/LaffRiotNF.ttf", 50);
+    clockFont = love.graphics.newFont("../assets/fonts/Clocker.ttf", 24);
 }
 
 UI.__index = UI

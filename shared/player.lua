@@ -1,28 +1,31 @@
+
+package.path = package.path .. ";../?.lua"
+
 local Player = {
     type = "player1";
-    
+
     image = {
         root = {
-            "assets/png/character/front.png"
+            love.graphics.newImage("shared/assets/png/character/front.png")
         };
         walking = {
-            "assets/png/character/walk/walk0001.png";
-            "assets/png/character/walk/walk0002.png";
-            "assets/png/character/walk/walk0003.png";
-            "assets/png/character/walk/walk0004.png";
-            "assets/png/character/walk/walk0005.png";
-            "assets/png/character/walk/walk0006.png";
-            "assets/png/character/walk/walk0007.png";
-            "assets/png/character/walk/walk0008.png";
-            "assets/png/character/walk/walk0009.png";
-            "assets/png/character/walk/walk0010.png";
-            "assets/png/character/walk/walk0011.png";
+            love.graphics.newImage("shared/assets/png/character/walk/walk0001.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0002.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0003.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0004.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0005.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0006.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0007.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0008.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0009.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0010.png");
+            love.graphics.newImage("shared/assets/png/character/walk/walk0011.png");
         };
         jumping = {
-            "assets/png/character/jump.png";
+            love.graphics.newImage("shared/assets/png/character/jump.png");
         };
         falling = {
-            "assets/png/character/jump.png";
+            love.graphics.newImage("shared/assets/png/character/jump.png");
         }
     };
 
@@ -50,6 +53,19 @@ function Player.new(self)
     return setmetatable(self, Player)
 end
 
+function Player:createPhysics(world)
+    self.w = self.w or self.image['root'][1]:getWidth()
+    self.h = self.h or self.image['root'][1]:getHeight()
+
+    self.body = love.physics.newBody(world, self.x, self.y, "dynamic")
+    self.shape = love.physics.newRectangleShape(0, 0, self.w, self.h)
+    self.fixture = love.physics.newFixture(self.body, self.shape, self.density or 1)
+
+    self.body:setFixedRotation(true)
+    self.fixture:setFriction(5)
+    self.body:setUserData(self)
+end
+
 function Player:update(dt)
     if self.velY < -5 then
         if self.state == 'falling' then
@@ -57,7 +73,7 @@ function Player:update(dt)
 
             if self.currFrame - self.lastFrame >= self.frameLen then
                 self.lastFrame = self.currFrame
-                self.imageState = 1 + (self.imageState % #self.images.falling)
+                self.imageState = 1 + (self.imageState % #self.image.falling)
             end
         else
             self.state = 'falling'
@@ -69,7 +85,7 @@ function Player:update(dt)
 
             if self.currFrame - self.lastFrame >= self.frameLen then
                 self.lastFrame = self.currFrame
-                self.imageState = 1 + (self.imageState % #self.images.jumping)
+                self.imageState = 1 + (self.imageState % #self.image.jumping)
             end
         else
             self.state = 'jumping'
@@ -81,7 +97,7 @@ function Player:update(dt)
 
             if self.currFrame - self.lastFrame >= self.frameLen then
                 self.lastFrame = self.currFrame
-                self.imageState = 1 + (self.imageState % #self.images.walking)
+                self.imageState = 1 + (self.imageState % #self.image.walking)
             end
         else
             self.state = 'walking'
@@ -93,7 +109,7 @@ function Player:update(dt)
 
             if self.currFrame - self.lastFrame >= self.frameLen then
                 self.lastFrame = self.currFrame
-                self.imageState = 1 + (self.imageState % #self.images.root)
+                self.imageState = 1 + (self.imageState % #self.image.root)
             end
         else
             self.state = 'root'
@@ -103,8 +119,8 @@ function Player:update(dt)
 end
 
 function Player:draw()
-    if self.images[self.state][self.imageState] then
-        local img = self.images[self.state][self.imageState]
+    if self.image[self.state][self.imageState] then
+        local img = self.image[self.state][self.imageState]
         love.graphics.draw(img, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, self.velX > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
     end
 end

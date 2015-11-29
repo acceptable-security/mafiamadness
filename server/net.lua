@@ -1,4 +1,5 @@
 local ffi = require("ffi")
+local Entities = require("shared/entities")
 
 require "enet"
 
@@ -6,13 +7,14 @@ local connection_pktid = 0x01
 local creation_pkktid = 0x02
 local movement_pktid = 0x03
 local update_pktid = 0x04
+local destruction_pktid = 0x05
 
 local clients = {}
 
 ffi.cdef[[
     typedef struct {
         unsigned int ver;
-        const char name[32];
+        char name[32];
     } connection_pkt;
 ]]
 
@@ -31,7 +33,7 @@ ffi.cdef[[
 ffi.cdef[[
     typedef struct {
         char dir;
-    } movement_pkt
+    } movement_pkt;
 ]]
 
 ffi.cdef[[
@@ -44,6 +46,13 @@ ffi.cdef[[
         float a;
     } update_pkt;
 ]]
+
+ffi.cdef[[
+    typedef struct {
+        unsigned int id;
+    } destruction_pkt;
+]]
+
 
 local Net = {
     host = nil;
@@ -70,7 +79,8 @@ function Net.new(self)
         return nil
     end
 
-    self.host = enet.host_create(self.ip, nil, 4)
+    self.host = enet.host_create(self.ip, nil, 10)
+    print("HOSTING")
     self.server = nil
     self.connected = false
 
@@ -79,14 +89,16 @@ end
 
 function Net:create(peer, id, obj)
     local type = nil
-
-    for k, v in Entities.entities do
+    print("CREATE")
+    for k, v in ipairs(Entities.entities) do
         if v.type == obj.type then
+            print("TYPEFOUND")
             type = k
         end
     end
 
     if type == nil then
+        print("ERROR!!!")
         error("Unable to identify type " .. obj.type)
     end
 
@@ -98,15 +110,12 @@ function Net:create(peer, id, obj)
     data.py = obj.body:getY()
     data.vx, data.vy = obj.body:getLinearVelocity()
     data.a = obj.body:getAngle()
-
+    print("SENT")
+    print(peer)
     peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid)
 end
 
-function Net:update(peer, id, body)
-    if #name > 32 then
-        error("Name can't be greater than 32 characters")
-    end
-
+function Net:update(peer, id, obj)
     local data = ffi.new(ffi.typeof("update_pkt"))
 
     data.id = id
@@ -118,15 +127,24 @@ function Net:update(peer, id, body)
     peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), update_pktid)
 end
 
+function Net:destroy(peer, id)
+    local data = ffi.new(ffi.typeof("destruction_pkt"))
+
+    data.id = id
+
+    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), destruction_pktid)
+end
+
 function Net:parse(peer, channel, data)
     if channel == connection_pktid then
         if self.joinCallback then
-            local data = ffi.cast(ffi.typeof("creation_pkt*"), event.data)[0]
+            print("JOIN")
+            local data = ffi.cast(ffi.typeof("creation_pkt*"), data)[0]
             self.creationCallback(peer, data)
         end
     elseif channel == movement_pktid then
         if self.movementCallback then
-            local data = ffi.cast(ffi.typeof("movement_pkt*"), event.data)[0]
+            local data = ffi.cast(ffi.typeof("movement_pkt*"), data)[0]
             self.movementCallback(peer, data)
         end
     end
@@ -144,13 +162,13 @@ function Net:listen()
     while event do
         if event.type == "connect" then
             if self.connectCallback then
-                self.connectCallback(peer)
+                self.connectCallback(event.peer)
             end
         elseif event.type == "receive" then
             self:parse(event.peer, event.channel, event.data)
         elseif event.type == "disconnect" then
             if self.disconnectCallback then
-                self.disconnectCallback(peer)
+                self.disconnectCallback(event.peer)
             end
         end
 

@@ -6,13 +6,14 @@ local connection_pktid = 0x01
 local creation_pkktid = 0x02
 local movement_pktid = 0x03
 local update_pktid = 0x04
+local destruction_pktid = 0x05
 
 local clients = {}
 
 ffi.cdef[[
     typedef struct {
         unsigned int ver;
-        const char name[32];
+        char name[32];
     } connection_pkt;
 ]]
 
@@ -31,7 +32,7 @@ ffi.cdef[[
 ffi.cdef[[
     typedef struct {
         char dir;
-    } movement_pkt
+    } movement_pkt;
 ]]
 
 ffi.cdef[[
@@ -45,6 +46,12 @@ ffi.cdef[[
     } update_pkt;
 ]]
 
+ffi.cdef[[
+    typedef struct {
+        unsigned int id;
+    } destruction_pkt;
+]]
+
 local Net = {
     host = nil;
     server = nil;
@@ -54,6 +61,7 @@ local Net = {
     disconnectCallback = nil;
     creationCallback = nil;
     updateCallback = nil;
+    destructionCallback = nil;
 }
 
 Net.__index = Net
@@ -79,7 +87,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip)
+    self.server = self.host:connect(ip, 5)
 end
 
 function Net:join(name, ver)
@@ -92,27 +100,34 @@ function Net:join(name, ver)
     data.name = ffi.string(ffi.new("char[32]", name), 32)
     data.ver = ver
 
-    server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid)
+    self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid)
 end
 
 function Net:move(mvt)
-    local data = ffi.new(ffi.typeof("movement_pkt"), {})
+    local data = ffi.new(ffi.typeof("movement_pkt"))
 
-    data.dir = (mvt.up & 0x1) << 3 | (mvt.down & 0x1) << 2 | (mvt.left & 0x1) << 1 | (mvt.right & 0x1)
+    data.dir = bit.bor(bit.lshift(bit.band(mvt.up, 0x1), 3), bit.bor(bit.lshift(bit.band(mvt.down, 0x1), 2), bit.lshift(bit.band(mvt.left, 0x1), 1)), bit.band(mvt.right, 0x1))
 
-    server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), movement_pktid)
+    self.server:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), movement_pktid)
 end
 
 function Net:parse(channel, data)
-    if channel == creation_pktid then
+    if channel == 0 then
         if self.creationCallback then
-            local data = ffi.cast(ffi.typeof("creation_pkt*"), event.data)[0]
+            print("CREATE")
+            local data = ffi.cast(ffi.typeof("creation_pkt*"), data)[0]
             self.creationCallback(data)
         end
     elseif channel == update_pktid then
         if self.updateCallback then
-            local data = ffi.cast(ffi.typeof("update_pkt*"), event.data)[0]
+            local data = ffi.cast(ffi.typeof("update_pkt*"), data)[0]
             self.updateCallback(data)
+        end
+    elseif channel == destruction_pktid then
+        if self.destructionCallback then
+            print("DESTROY")
+            local data = ffi.cast(ffi.typeof("destruction_pkt*"), data)[0]
+            self.destructionCallback(data)
         end
     end
 end

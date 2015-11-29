@@ -1,37 +1,44 @@
-local UI = require("ui")
+-- local UI = require("ui")
 local Camera = require("camera")
-local Entities = require("../shared/entities.lua")
+local Entities = require("shared/entities")
+local Net = require("net")
 
 local debug = true
 local paused = false
-local ui = nil
-
-function loadImage()
-    return
-end
+-- local ui = nil
 
 function love.load(arg)
     love.physics.setMeter(64) --the height of a meter our worlds will be 64px
     love.graphics.setBackgroundColor(155, 207, 198)
 
-    ui = UI.new {
-        equipped = love.graphics.newImage("assets/png/bonus.png")
-    }
+    connected = false
+
+    -- ui = UI.new {
+    --     equipped = love.graphics.newImage("shared/assets/png/bonus.png")
+    -- }
 
     objects = {}
+    myID = nil
 
-    net = Net {
-        ip = "localhost:1234";
-
+    net = Net.new {
         connectCallback = function()
+            connected = true
             net:join("Anonymous", Entities.version)
         end;
 
         disconnectCallback = function()
+            connected = false
             net:close()
         end;
 
         creationCallback = function(data)
+            print("AYYY")
+            print(data)
+
+            if myID == nil then
+                myID = data.id
+            end
+
             local type = Entities.entities[data.type]
 
             objects[data.id] = type.new {
@@ -44,18 +51,27 @@ function love.load(arg)
         end;
 
         updateCallback = function(data)
-            objects[data.id].x = data.px
-            objects[data.id].y = data.py
-            objects[data.id].velX = data.vx
-            objects[data.id].velY = data.vy
-            objects[data.id].a = data.a
+            if objects[data.id] then
+                objects[data.id].x = data.px
+                objects[data.id].y = data.py
+                objects[data.id].velX = data.vx
+                objects[data.id].velY = data.vy
+                objects[data.id].a = data.a
 
-            if objects[data.id].update then
-                objects[data.id].update(dt) -- probably not the right DT
+                if objects[data.id].update then
+                    objects[data.id]:update(0.01) -- probably not the right DT
+                end
             end
         end;
+
+        destructionCallback = function(data)
+            objects[data.id] = nil
+        end;
     }
-    camera = Camera.new()
+
+    net:connect("localhost:1234")
+
+    camera = Camera.new{}
     camera:setBounds(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 end
 
@@ -68,6 +84,7 @@ function love.keypressed(k)
         up = 0;
         left = 0;
         right = 0;
+        down = 0;
     }
 
     local empty = true
@@ -95,18 +112,18 @@ function love.draw(dt)
         love.graphics.print('PAUSED', love.graphics.getWidth()/2, love.graphics.getHeight()/2)
     end
 
-    for _, v in ipairs(objects) do
+    if not connected then
+        love.graphics.print('Waiting for Connection', (love.graphics.getWidth()/2), love.graphics.getHeight()/2)
+    end
+
+    print(#objects)
+
+    for _, v in pairs(objects) do
+        print(v)
         if v.draw then
             v:draw()
         end
     end
 
-    ui:draw()
-
-    if debug then
-        local x, y = level.player.body:getLinearVelocity()
-        love.graphics.print('(' .. level.player.body:getX() .. ', ' .. level.player.body:getY() .. ')', 0, 0)
-        love.graphics.print('(' .. x .. ', ' .. y .. ')', 0, 10)
-        love.graphics.print('state: ' .. level.player.state .. '[' .. level.player.imageState .. ']', 0, 20)
-    end
+    -- ui:draw()
 end

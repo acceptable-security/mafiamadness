@@ -1,0 +1,12 @@
+-- function love.load(arg)
+--     if arg[1] then
+--         if arg[1] == "server" then
+--             require "server/main"
+--         else
+--             require "client/main"
+--         end
+--     else
+--         require "client/main"
+--     end
+-- end
+require "server/main"

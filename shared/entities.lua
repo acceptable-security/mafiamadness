@@ -1,7 +1,7 @@
 return {
     version = 0x01;
     entities = {
-        require("box.lua");
-        require("player.lua");
+        require("shared/box");
+        require("shared/player");
     };
 }

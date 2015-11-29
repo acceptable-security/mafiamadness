@@ -1,6 +1,6 @@
 local Box = {
     type = "box1";
-    image = love.graphics.newImage("assets/png/block.png");
+    image = "assets/png/block.png";
 }
 
 Box.__index = Box
@@ -19,6 +19,21 @@ function Box.new(self)
     return setmetatable(self, Box)
 end
 
+function Box:createPhysics(world)
+    self.w = self.w or self.image:getWidth()
+    self.h = self.h or self.image:getHeight()
+
+    self.body = love.physics.newBody(world, self.x, self.y, "static")
+    self.shape = love.physics.newRectangleShape(0, 0, self.w, self.h)
+    self.fixture = love.physics.newFixture(self.body, self.shape, self.density or 1)
+
+    self.body:setFixedRotation(true)
+    self.fixture:setFriction(5)
+    self.body:setUserData(self)
+end
+
 function Box:draw()
     love.graphics.draw(self.image, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, 1, 1, math.floor((self.image:getWidth()/2) + 0.5), math.floor((self.image:getHeight()/2) + 0.5))
 end
+
+return Box
