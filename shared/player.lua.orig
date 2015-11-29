@@ -136,6 +136,7 @@ function Player:update(dt)
     end
 end
 
+
 local function round(x)
     return math.floor(x + 0.5)
 end
@@ -144,12 +145,12 @@ function Player:draw(prediction)
     if self.image[self.state][self.imageState] then
         local img = self.image[self.state][self.imageState]
 
-        local x, y, angle, velX
-        x, y = self.body:getX(), self.body:getY()
-        angle = self.body:getAngle()
-        velX = select(1, self.body:getLinearVelocity())
-
-        love.graphics.draw(img, round(x), round(y), angle, velX < -1 and -1 or 1, 1, round((img:getWidth()/2)), round((img:getHeight()/2)))
+        if self.body and prediction then
+            local x, _ = self.body:getLinearVelocity()
+            love.graphics.draw(img, round(self.body:getX()), round(self.body:getY()), self.body:getAngle(), x  > 0 and 1 or -1, 1, round((img:getWidth()/2)), round((img:getHeight()/2)))
+        else
+            love.graphics.draw(img, round(self.x), round(self.y), self.angle, self.velX > 0 and 1 or -1, 1, round((img:getWidth()/2)), round((img:getHeight()/2)))
+        end
     end
 end
 

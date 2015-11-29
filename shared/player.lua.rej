@@ -1,0 +1,32 @@
+--- shared/player.lua
++++ shared/player.lua
+@@ -136,16 +136,26 @@ function Player:update(dt)
+     end
+ end
+ 
++
++local function round(x)
++    return math.floor(x + 0.5)
++end
++
+ function Player:draw(prediction)
+     if self.image[self.state][self.imageState] then
+         local img = self.image[self.state][self.imageState]
+ 
++        local x, y, angle, velX
+         if self.body and prediction then
+-            local x, _ = self.body:getLinearVelocity()
+-            love.graphics.draw(img, math.floor(self.body:getX() + 0.5), math.floor(self.body:getY() + 0.5), self.body:getAngle(), x  > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
++            x, y = self.body:getX(), self.body:getY()
++            angle = self.body:getAngle()
++            velX = select(1, self.body:getLinearVelocity())
+         else
+-            love.graphics.draw(img, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, self.velX > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
++            x, y = self.x, self.y
++            angle = self.angle
++            velX = self.velX
+         end
++        love.graphics.draw(img, round(x), round(y), angle, velX > 0 and 1 or -1, 1, round((img:getWidth()/2)), round((img:getHeight()/2)))
+     end
+ end
+ 

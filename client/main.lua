@@ -55,7 +55,7 @@ function love.load(arg)
 
         updateCallback = function(data)
             if objects[data.id] then
-                if objects[data.id].body and prediction then
+                if objects[data.id].body then
                     dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
                     d = (dx^2 + dy^2)^0.5
 
@@ -65,11 +65,12 @@ function love.load(arg)
                         objects[data.id].body:setPosition(objects[data.id].body:getX() + dx, objects[data.id].body:getY() + dy)
                     end
 
-                    if data.id == myID then
+                    if data.id == myID and prediction then
                         objects[myID].body:setPosition(data.px, data.py)
 
                         for _, k in ipairs(lastMovements) do
                             objects[myID]:applyMovement(k)
+                            -- ourWorld:update(k.dt)
                         end
 
                         lastMovements = {}
@@ -77,12 +78,6 @@ function love.load(arg)
 
                     objects[data.id].body:setLinearVelocity(data.vx, data.vy)
                     objects[data.id].body:setAngle(data.a)
-                else
-                    objects[data.id].x = data.px
-                    objects[data.id].y = data.py
-                    objects[data.id].velX = data.vx
-                    objects[data.id].velY = data.vy
-                    objects[data.id].a = data.a
                 end
 
                 if objects[data.id].update then
@@ -145,14 +140,14 @@ function love.update(dt)
 
     if not empty and prediction and myID then
         objects[myID]:applyMovement(mvt)
+
+        ourWorld:update(0.017)
+
+        table.insert(lastMovements, {
+            mvt = mvt;
+            dt = dt;
+        })
     end
-
-    ourWorld:update(dt)
-
-    table.insert(lastMovements, {
-        mvt = mvt;
-        dt = dt;
-    })
 
     if not empty then
         net:move(mvt)
