@@ -66,7 +66,9 @@ function Player:createPhysics(world)
 end
 
 function Player:update(dt)
-    if self.velY < -5 then
+    local x, y = self.body:getLinearVelocity()
+
+    if y < -5 then
         if self.state == 'falling' then
             self.currFrame = self.currFrame + dt
 
@@ -78,7 +80,7 @@ function Player:update(dt)
             self.state = 'falling'
             self.imageState = 1
         end
-    elseif self.velY > 3 then
+    elseif y > 3 then
         if self.state == 'jumping' then
             self.currFrame = self.currFrame + dt
 
@@ -90,7 +92,7 @@ function Player:update(dt)
             self.state = 'jumping'
             self.imageState = 1
         end
-    elseif math.abs(self.velX) > 1 then
+    elseif math.abs(x) > 1 then
         if self.state == 'walking' then
             self.currFrame = self.currFrame + dt
 
@@ -120,7 +122,12 @@ end
 function Player:draw()
     if self.image[self.state][self.imageState] then
         local img = self.image[self.state][self.imageState]
-        love.graphics.draw(img, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, self.velX > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
+
+        if self.body then
+            love.graphics.draw(img, math.floor(self.body:getX() + 0.5), math.floor(self.body:getY() + 0.5), self.body:getAngle(), 1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
+        else
+            love.graphics.draw(img, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, self.velX > 0 and 1 or -1, 1, math.floor((img:getWidth()/2) + 0.5), math.floor((img:getHeight()/2) + 0.5))
+        end
     end
 end
 

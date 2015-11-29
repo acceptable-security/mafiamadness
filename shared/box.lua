@@ -34,7 +34,11 @@ function Box:createPhysics(world)
 end
 
 function Box:draw()
-    love.graphics.draw(self.image, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, 1, 1, math.floor((self.image:getWidth()/2) + 0.5), math.floor((self.image:getHeight()/2) + 0.5))
+    if self.body then
+        love.graphics.draw(self.image, math.floor(self.body:getX() + 0.5), math.floor(self.body:getY() + 0.5), self.body:getAngle(), 1, 1, math.floor((self.image:getWidth()/2) + 0.5), math.floor((self.image:getHeight()/2) + 0.5))
+    else
+        love.graphics.draw(self.image, math.floor(self.x + 0.5), math.floor(self.y + 0.5), self.angle, 1, 1, math.floor((self.image:getWidth()/2) + 0.5), math.floor((self.image:getHeight()/2) + 0.5))
+    end
 end
 
 return Box

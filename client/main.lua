@@ -45,15 +45,25 @@ function love.load(arg)
                 velY = data.vy;
                 angle = data.a;
             }
+
+            if objects[data.id].createPhysics then
+                objects[data.id]:createPhysics(ourWorld)
+            end
         end;
 
         updateCallback = function(data)
             if objects[data.id] then
-                objects[data.id].x = data.px
-                objects[data.id].y = data.py
-                objects[data.id].velX = data.vx
-                objects[data.id].velY = data.vy
-                objects[data.id].a = data.a
+                if objects[data.id].body then
+                    objects[data.id].body:setPosition(data.px, data.py)
+                    objects[data.id].body:setLinearVelocity(data.vx, data.vy)
+                    objects[data.id].body:setAngle(data.a)
+                else
+                    objects[data.id].x = data.px
+                    objects[data.id].y = data.py
+                    objects[data.id].velX = data.vx
+                    objects[data.id].velY = data.vy
+                    objects[data.id].a = data.a
+                end
 
                 if objects[data.id].update then
                     objects[data.id]:update(0.01) -- probably not the right DT
@@ -66,10 +76,14 @@ function love.load(arg)
         end;
     }
 
-    net:connect("localhost:1234")
+    net:connect("67.87.226.231:1234")
 
     camera = Camera.new{}
     camera:setBounds(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+
+    love.physics.setMeter(64)
+    gravity = 9.81
+    ourWorld = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
 end
 
 function love.update(dt)

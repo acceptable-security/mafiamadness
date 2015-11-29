@@ -50,7 +50,7 @@ function love.load(args)
     objectID = 0
 
     net = Net.new {
-        ip = "localhost:1234";
+        ip = "0.0.0.0:1234";
 
         connectCallback = function (peer)
             pobj = {
