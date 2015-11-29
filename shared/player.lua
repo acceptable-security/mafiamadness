@@ -66,18 +66,18 @@ function Player:createPhysics(world)
 end
 
 function Player:applyMovement(mvt)
-    if mvt.up then
+    if mvt.up == 1 then
         local _, y = self.body:getLinearVelocity()
         if math.abs(y) < 7 then
             self.body:applyLinearImpulse(0, self.body:getMass() * love.physics.getMeter()*-5)
         end
     end
 
-    if mvt.left then
+    if mvt.left == 1 then
         self.body:applyLinearImpulse(-20 * self.body:getMass(), 0)
     end
 
-    if mvt.right then
+    if mvt.right == 1 then
         self.body:applyLinearImpulse(20 * self.body:getMass(), 0)
     end
 end
