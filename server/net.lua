@@ -125,13 +125,7 @@ function Net:update(peer, id, obj)
     data.vx = math.floor(data.vx + 0.5)
     data.vy = math.floor(data.vy + 0.5)
     data.a = obj.body:getAngle()
-
-    -- obj._px = data.px
-    -- obj._py = data.py
-    -- obj._vx = data.vx
-    -- obj._vy = data.vy
-    -- obj._a = data.a
-
+    
     peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), update_pktid, "unreliable")
 end
 

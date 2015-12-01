@@ -107,6 +107,52 @@ function love.load(arg)
     ourWorld = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
     prediction = true
     lastMovements = {}
+
+    ourWorld:setCallbacks(function (a, b, col)
+        x, y = col:getNormal()
+
+        if x ~= 0 and y ~= 1 then
+            return
+        end
+
+        if a:getBody():getUserData() then
+            if not a:getBody():getUserData().numContacts then
+                a:getBody():getUserData().numContacts = 1
+            else
+                a:getBody():getUserData().numContacts = a:getBody():getUserData().numContacts + 1
+            end
+        end
+
+        if b:getBody():getUserData() then
+            if not b:getBody():getUserData().numContacts then
+                b:getBody():getUserData().numContacts = 1
+            else
+                b:getBody():getUserData().numContacts = b:getBody():getUserData().numContacts + 1
+            end
+        end
+    end, function(a, b, col)
+        x, y = col:getNormal()
+
+        if x ~= 0 and y ~= 1 then
+            return
+        end
+
+        if a:getBody():getUserData() then
+            if not a:getBody():getUserData().numContacts then
+                a:getBody():getUserData().numContacts = 0
+            else
+                a:getBody():getUserData().numContacts = a:getBody():getUserData().numContacts - 1
+            end
+        end
+
+        if b:getBody():getUserData() then
+            if not b:getBody():getUserData().numContacts then
+                b:getBody():getUserData().numContacts = 0
+            else
+                b:getBody():getUserData().numContacts = b:getBody():getUserData().numContacts - 1
+            end
+        end
+    end, _, _)
 end
 
 function love.keypressed(k)
@@ -122,25 +168,25 @@ function love.update(dt)
     net:read()
 
     local mvt = {
-        up = 0;
-        left = 0;
-        right = 0;
-        down = 0;
+        up = false;
+        left = false;
+        right = false;
+        down = false;
     }
 
     local empty = true
 
     if love.keyboard.isDown('w') then
         empty = false
-        mvt.up = 1
+        mvt.up = true
     end
     if love.keyboard.isDown('a') then
         empty = false
-        mvt.left = 1
+        mvt.left = true
     end
     if love.keyboard.isDown('d') then
         empty = false
-        mvt.right = 1
+        mvt.right = true
     end
 
     if prediction and myID then

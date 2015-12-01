@@ -45,6 +45,51 @@ function love.load(args)
     love.physics.setMeter(64)
     gravity = 9.81
     world = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
+    world:setCallbacks(function (a, b, col)
+        x, y = col:getNormal()
+
+        if x ~= 0 and y ~= 1 then
+            return
+        end
+
+        if a:getBody():getUserData() then
+            if not a:getBody():getUserData().numContacts then
+                a:getBody():getUserData().numContacts = 1
+            else
+                a:getBody():getUserData().numContacts = a:getBody():getUserData().numContacts + 1
+            end
+        end
+
+        if b:getBody():getUserData() then
+            if not b:getBody():getUserData().numContacts then
+                b:getBody():getUserData().numContacts = 1
+            else
+                b:getBody():getUserData().numContacts = b:getBody():getUserData().numContacts + 1
+            end
+        end
+    end, function(a, b, col)
+        x, y = col:getNormal()
+
+        if x ~= 0 and y ~= 1 then
+            return
+        end
+
+        if a:getBody():getUserData() then
+            if not a:getBody():getUserData().numContacts then
+                a:getBody():getUserData().numContacts = 0
+            else
+                a:getBody():getUserData().numContacts = a:getBody():getUserData().numContacts - 1
+            end
+        end
+
+        if b:getBody():getUserData() then
+            if not b:getBody():getUserData().numContacts then
+                b:getBody():getUserData().numContacts = 0
+            else
+                b:getBody():getUserData().numContacts = b:getBody():getUserData().numContacts - 1
+            end
+        end
+    end, _, _)
 
     players = {}
     objectID = 0

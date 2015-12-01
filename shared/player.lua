@@ -66,18 +66,25 @@ function Player:createPhysics(world)
 end
 
 function Player:applyMovement(mvt)
-    if mvt.up == 1 then
-        local _, y = self.body:getLinearVelocity()
-        if math.abs(y) < 7 then
-            self.body:applyLinearImpulse(0, self.body:getMass() * love.physics.getMeter()*-5)
+    if mvt.up then
+        if self.numContacts ~= nil and self.numContacts > 0 then
+            if not self.lastJumpTime then
+                self.lastJumpTime = love.timer.getTime()
+                self.body:applyLinearImpulse(0, self.body:getMass() * love.physics.getMeter()*-5)
+            else
+                if love.timer.getTime() - self.lastJumpTime > 1 then
+                    self.lastJumpTime = love.timer.getTime()
+                    self.body:applyLinearImpulse(0, self.body:getMass() * love.physics.getMeter()*-5)
+                end
+            end
         end
     end
 
-    if mvt.left == 1 then
+    if mvt.left then
         self.body:applyLinearImpulse(-20 * self.body:getMass(), 0)
     end
 
-    if mvt.right == 1 then
+    if mvt.right then
         self.body:applyLinearImpulse(20 * self.body:getMass(), 0)
     end
 end
@@ -85,7 +92,7 @@ end
 function Player:update(dt)
     local x, y = self.body:getLinearVelocity()
 
-    if y < -5 then
+    if y < -5 and (self.numContacts and self.numContacts == 0) then
         if self.state == 'falling' then
             self.currFrame = self.currFrame + dt
 
@@ -97,7 +104,7 @@ function Player:update(dt)
             self.state = 'falling'
             self.imageState = 1
         end
-    elseif y > 3 then
+    elseif y > 3 and (self.numContacts and self.numContacts == 0) then
         if self.state == 'jumping' then
             self.currFrame = self.currFrame + dt
 
@@ -109,7 +116,7 @@ function Player:update(dt)
             self.state = 'jumping'
             self.imageState = 1
         end
-    elseif math.abs(x) > 1 then
+    elseif math.abs(x) > 1 and (self.numContacts and self.numContacts > 0) then
         if self.state == 'walking' then
             self.currFrame = self.currFrame + dt
 
@@ -122,16 +129,30 @@ function Player:update(dt)
             self.imageState = 1
         end
     else
-        if self.state == 'root' then
-            self.currFrame = self.currFrame + dt
+        if self.numContacts and self.numContacts > 0 then
+            if self.state == 'root' then
+                self.currFrame = self.currFrame + dt
 
-            if self.currFrame - self.lastFrame >= self.frameLen then
-                self.lastFrame = self.currFrame
-                self.imageState = 1 + (self.imageState % #self.image.root)
+                if self.currFrame - self.lastFrame >= self.frameLen then
+                    self.lastFrame = self.currFrame
+                    self.imageState = 1 + (self.imageState % #self.image.root)
+                end
+            else
+                self.state = 'root'
+                self.imageState = 1
             end
         else
-            self.state = 'root'
-            self.imageState = 1
+            if self.state == 'falling' then
+                self.currFrame = self.currFrame + dt
+
+                if self.currFrame - self.lastFrame >= self.frameLen then
+                    self.lastFrame = self.currFrame
+                    self.imageState = 1 + (self.imageState % #self.image.falling)
+                end
+            else
+                self.state = 'falling'
+                self.imageState = 1
+            end
         end
     end
 end
