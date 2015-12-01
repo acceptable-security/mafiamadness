@@ -55,7 +55,7 @@ function love.load(arg)
 
         updateCallback = function(data)
             if love.keyboard.isDown("l") then
-                objects[data.id]:update(0.01)
+                if objects[data.id].update then objects[data.id]:update(0.01) end
                 return
             end
 
