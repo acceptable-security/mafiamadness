@@ -72,7 +72,7 @@ function Player:applyMovement(mvt)
                 self.lastJumpTime = love.timer.getTime()
                 self.body:applyLinearImpulse(0, self.body:getMass() * love.physics.getMeter()*-5)
             else
-                if love.timer.getTime() - self.lastJumpTime > 1 then
+                if love.timer.getTime() - self.lastJumpTime > 0.5 then
                     self.lastJumpTime = love.timer.getTime()
                     self.body:applyLinearImpulse(0, self.body:getMass() * love.physics.getMeter()*-5)
                 end

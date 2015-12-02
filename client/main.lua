@@ -111,12 +111,8 @@ function love.load(arg)
     ourWorld:setCallbacks(function (a, b, col)
         x, y = col:getNormal()
 
-        if x ~= 0 and y ~= 1 then
-            return
-        end
-
         if a:getBody():getUserData() then
-            if not a:getBody():getUserData().numContacts then
+            if not a:getBody():getUserData().numContacts or a:getBody():getUserData().numContacts < 0  then
                 a:getBody():getUserData().numContacts = 1
             else
                 a:getBody():getUserData().numContacts = a:getBody():getUserData().numContacts + 1
@@ -124,7 +120,7 @@ function love.load(arg)
         end
 
         if b:getBody():getUserData() then
-            if not b:getBody():getUserData().numContacts then
+            if not b:getBody():getUserData().numContacts or b:getBody():getUserData().numContacts < 0 then
                 b:getBody():getUserData().numContacts = 1
             else
                 b:getBody():getUserData().numContacts = b:getBody():getUserData().numContacts + 1
@@ -138,7 +134,7 @@ function love.load(arg)
         end
 
         if a:getBody():getUserData() then
-            if not a:getBody():getUserData().numContacts then
+            if not a:getBody():getUserData().numContacts or a:getBody():getUserData().numContacts < 0  then
                 a:getBody():getUserData().numContacts = 0
             else
                 a:getBody():getUserData().numContacts = a:getBody():getUserData().numContacts - 1
@@ -146,7 +142,7 @@ function love.load(arg)
         end
 
         if b:getBody():getUserData() then
-            if not b:getBody():getUserData().numContacts then
+            if not b:getBody():getUserData().numContacts or b:getBody():getUserData().numContacts < 0  then
                 b:getBody():getUserData().numContacts = 0
             else
                 b:getBody():getUserData().numContacts = b:getBody():getUserData().numContacts - 1
