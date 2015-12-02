@@ -1,4 +1,4 @@
--- local UI = require("ui")
+local UI = require("client/ui")
 local Camera = require("client/camera")
 local Entities = require("shared/entities")
 local Net = require("client/net")
@@ -8,7 +8,7 @@ require("client/math")
 local debug = true
 local paused = false
 local myID = nil
--- local ui = nil
+local ui = nil
 
 function love.load(arg)
     love.physics.setMeter(64) --the height of a meter our worlds will be 64px
@@ -16,9 +16,9 @@ function love.load(arg)
 
     connected = false
 
-    -- ui = UI.new {
-    --     equipped = love.graphics.newImage("shared/assets/png/bonus.png")
-    -- }
+    ui = UI.new {
+        equipped = love.graphics.newImage("shared/assets/png/bonus.png")
+    }
 
     objects = {}
 
@@ -229,5 +229,5 @@ function love.draw(dt)
     end
     camera:unset()
 
-    -- ui:draw()
+    ui:draw()
 end

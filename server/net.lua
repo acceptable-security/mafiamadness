@@ -1,7 +1,11 @@
-local ffi = require("ffi")
 local Entities = require("shared/entities")
+local mp = require("shared/MessagePack")
 
 require "enet"
+
+mp.set_number('float')
+mp.set_array('with_hole')
+mp.set_string('string')
 
 local connection_pktid = 0x01
 local creation_pkktid = 0x02
@@ -10,52 +14,6 @@ local update_pktid = 0x04
 local destruction_pktid = 0x05
 
 local clients = {}
-
-ffi.cdef[[
-    typedef struct {
-        unsigned int ver;
-        char name[32];
-    } connection_pkt;
-]]
-
-ffi.cdef[[
-    typedef struct {
-        unsigned int id;
-        unsigned int type;
-        float px;
-        float py;
-        float vx;
-        float vy;
-        float a;
-    } creation_pkt;
-]]
-
-ffi.cdef[[
-    typedef struct {
-        bool up;
-        bool left;
-        bool right;
-    } movement_pkt;
-]]
-
-
-ffi.cdef[[
-    typedef struct {
-        unsigned int id;
-        int px;
-        int py;
-        int vx;
-        int vy;
-        float a;
-    } update_pkt;
-]]
-
-ffi.cdef[[
-    typedef struct {
-        unsigned int id;
-    } destruction_pkt;
-]]
-
 
 local Net = {
     host = nil;
@@ -102,51 +60,52 @@ function Net:create(peer, id, obj)
         return
     end
 
+    local vx, vy = obj.body:getLinearVelocity()
 
-    local data = ffi.new(ffi.typeof("creation_pkt"))
+    data = {
+        id = id;
+        type = type;
+        px = obj.body:getX();
+        py = obj.body:getY();
+        vx = vx;
+        vy = vy;
+        a = obj.body:getAngle();
+    }
 
-    data.id = id
-    data.type = type
-    data.px = obj.body:getX()
-    data.py = obj.body:getY()
-    data.vx, data.vy = obj.body:getLinearVelocity()
-    data.a = obj.body:getAngle()
-
-    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), creation_pktid, "unreliable")
+    peer:send(mp.pack(data), creation_pktid, "reliable")
 end
 
 function Net:update(peer, id, obj)
-    local data = ffi.new(ffi.typeof("update_pkt"))
+    local vx, vy = obj.body:getLinearVelocity()
 
-    data.id = id
-    data.px = math.floor(obj.body:getX() + 0.5)
-    data.py = math.floor(obj.body:getY() + 0.5)
-    data.vx, data.vy = obj.body:getLinearVelocity()
-    data.vx = math.floor(data.vx + 0.5)
-    data.vy = math.floor(data.vy + 0.5)
-    data.a = obj.body:getAngle()
-    
-    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), update_pktid, "unreliable")
+    local data = {
+        id = id;
+        px = obj.body:getX();
+        py = obj.body:getY();
+        vx = vx;
+        vy = vy;
+        a = obj.body:getAngle();
+    }
+
+    peer:send(mp.pack(data), update_pktid, "unreliable")
 end
 
 function Net:destroy(peer, id)
-    local data = ffi.new(ffi.typeof("destruction_pkt"))
+    local data = {
+        id = id;
+    }
 
-    data.id = id
-
-    peer:send(ffi.string(ffi.cast("const char*", data), ffi.sizeof(data)), destruction_pktid, "unreliable")
+    peer:send(mp.pack(data), destruction_pktid, "unreliable")
 end
 
 function Net:parse(peer, channel, data)
     if channel == connection_pktid then
         if self.joinCallback then
-            local data = ffi.cast(ffi.typeof("creation_pkt*"), data)[0]
-            self.creationCallback(peer, data)
+            self.creationCallback(peer, mp.unpack(data))
         end
     elseif channel == movement_pktid then
         if self.movementCallback then
-            local data = ffi.cast(ffi.typeof("movement_pkt*"), data)[0]
-            self.movementCallback(peer, data)
+            self.movementCallback(peer, mp.unpack(data))
         end
     end
 end
