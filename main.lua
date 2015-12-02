@@ -9,5 +9,5 @@ function love.load(arg)
         require "client/main"
     end
 
-    love.load()
+    love.load(arg)
 end

@@ -97,7 +97,7 @@ function love.load(arg)
         end;
     }
 
-    net:connect("67.87.226.231:1234")
+    net:connect(arg[3])
 
     camera = Camera.new{}
     camera:setBounds(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
@@ -199,6 +199,11 @@ function love.update(dt)
     if not empty then
         net:move(mvt)
     end
+
+    if objects[myID] then
+        camera:setPosition((objects[myID].body:getX() - (love.graphics.getWidth() / 2)) / 2,
+                           (objects[myID].body:getY() - (love.graphics.getHeight() / 2)) / 2)
+    end
 end
 
 function love.draw(dt)
@@ -216,11 +221,13 @@ function love.draw(dt)
         love.graphics.print("Prediction OFF", 0, 0)
     end
 
+    camera:set()
     for _, v in pairs(objects) do
         if v and v.draw then
             v:draw(prediction)
         end
     end
+    camera:unset()
 
     -- ui:draw()
 end
