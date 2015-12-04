@@ -12,7 +12,7 @@ local creation_pkktid = 0x02
 local movement_pktid = 0x03
 local update_pktid = 0x04
 local destruction_pktid = 0x05
-local chat_pltid = 0x06
+local chat_pktid = 0x06
 
 local clients = {}
 
@@ -109,6 +109,7 @@ function Net:destroy(peer, id)
 end
 
 function Net:parse(peer, channel, data)
+    print(channel .. "blah")
     if channel == connection_pktid then
         if self.creationCallback then
             self.creationCallback(peer, mp.unpack(data))
@@ -118,6 +119,7 @@ function Net:parse(peer, channel, data)
             self.movementCallback(peer, mp.unpack(data))
         end
     elseif channel == chat_pktid then
+        print("TEST")
         if self.chatCallback then
             self.chatCallback(peer, mp.unpack(data))
         end

@@ -50,7 +50,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip, 6)
+    self.server = self.host:connect(ip, 7)
 end
 
 function Net:join(name, ver)
@@ -58,7 +58,7 @@ function Net:join(name, ver)
         name = name;
         ver = ver;
     }
-    
+
     self.server:send(mp.pack(data), connection_pktid, "reliable")
 end
 
