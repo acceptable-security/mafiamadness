@@ -180,7 +180,7 @@ function love.keypressed(k)
     end
 end
 
-function love.textinput(text)
+function love.textinput(k)
     if ui.chatOpen then
         ui.tmpmsg = ui.tmpMsg .. k
     end
