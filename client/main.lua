@@ -211,7 +211,7 @@ function love.update(dt)
         end
     end
 
-    if prediction and myID then
+    if prediction and myID and objects[myID] then
         objects[myID]:applyMovement(mvt)
 
         ourWorld:update(0.017)

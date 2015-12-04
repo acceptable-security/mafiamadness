@@ -119,7 +119,7 @@ function Net:parse(peer, channel, data)
         end
     elseif channel == chat_pktid then
         if self.chatCallback then
-            self.chatCallbakc(peer, mp.unpack(data))
+            self.chatCallback(peer, mp.unpack(data))
         end
     end
 end
