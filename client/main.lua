@@ -182,7 +182,7 @@ end
 
 function love.textinput(k)
     if ui.chatOpen then
-        ui.tmpmsg = ui.tmpMsg .. k
+        ui.tmpMsg = ui.tmpMsg .. k
     end
 end
 
