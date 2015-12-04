@@ -153,6 +153,8 @@ function love.load(args)
         end;
 
         chatCallback = function(peer, data)
+            if #data.msg < 1 then return end
+
             d = nil
 
             for k, v in ipairs(players) do

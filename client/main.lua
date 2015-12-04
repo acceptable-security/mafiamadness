@@ -176,12 +176,14 @@ function love.keypressed(k)
         elseif k == "escape" then
             ui.tmpMsg = ""
             ui.chatOpen = false
-        else
-            ui.tmpMsg = ui.tmpMsg .. k
         end
     end
+end
 
-
+function love.textinput(text)
+    if ui.chatOpen then
+        ui.tmpmsg = ui.tmpMsg .. k
+    end
 end
 
 function love.update(dt)
