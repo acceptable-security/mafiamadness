@@ -93,9 +93,10 @@ function love.load(args)
     net = Net.new {
         ip = "0.0.0.0:1234";
 
-        connectCallback = function (peer)
+        creationCallback = function (peer, data)
             pobj = {
                 peer = peer;
+                name = data.name;
                 objectID = nil;
                 obj = nil;
             }
@@ -126,12 +127,14 @@ function love.load(args)
                 end
             end
 
-            for _, k in ipairs(players) do
-                net:destroy(k.peer, d.objectID)
-            end
+            if d ~= nil then
+                for _, k in ipairs(players) do
+                    net:destroy(k.peer, d.objectID)
+                end
 
-            d.obj.fixture:destroy()
-            d.obj.body:destroy()
+                d.obj.fixture:destroy()
+                d.obj.body:destroy()
+            end
         end;
 
         movementCallback = function(peer, data)
@@ -144,7 +147,31 @@ function love.load(args)
                 end
             end
 
-            d.obj:applyMovement(data)
+            if d then
+                d.obj:applyMovement(data)
+            end
+        end;
+
+        chatCallback = function(peer, data)
+            d = nil
+
+            for k, v in ipairs(players) do
+                if v.peer == peer then
+                    d = v
+                    break
+                end
+            end
+
+            if d then
+                if data.loc == "global" then
+                    for k, v in ipairs(players) do
+                        if v.peer ~= peer then
+                            net:update(v.peer, d.name, data.msg)
+                        end
+                    end
+                -- elseif data.loc == "local"
+                end
+            end
         end;
     }
 

@@ -16,9 +16,7 @@ function love.load(arg)
 
     connected = false
 
-    ui = UI.new {
-        equipped = love.graphics.newImage("shared/assets/png/bonus.png")
-    }
+    ui = UI.new { }
 
     objects = {}
 
@@ -51,6 +49,10 @@ function love.load(arg)
             if objects[data.id].createPhysics then
                 objects[data.id]:createPhysics(ourWorld)
             end
+        end;
+
+        chatCallback = function(data)
+            ui:msg(data.name, data.msg)
         end;
 
         updateCallback = function(data)
@@ -152,12 +154,34 @@ function love.load(arg)
 end
 
 function love.keypressed(k)
-    if k == "escape" then
-        net:close()
-        love.event.quit()
-    elseif k == "p" then
-        prediction = not prediction
+    if not ui.chatOpen then
+        if k == "escape" then
+            net:close()
+            love.event.quit()
+        elseif k == "p" then
+            prediction = not prediction
+        elseif k == "t" then
+            ui.chatOpen = true
+        end
+    else
+        if k == "return" then
+            ui:msg("Anonymous", ui.tmpMsg)
+            net:msg(ui.tmpMsg, "global")
+            ui.tmpMsg = ""
+            ui.chatOpen = false
+        elseif k == "backspace" then
+            if #ui.tmpMsg > 0 then
+                ui.tmpMsg = ui.tmpMsg:sub(1, #ui.tmpMsg - 1)
+            end
+        elseif k == "escape" then
+            ui.tmpMsg = ""
+            ui.chatOpen = false
+        else
+            ui.tmpMsg = ui.tmpMsg .. k
+        end
     end
+
+
 end
 
 function love.update(dt)
@@ -172,17 +196,19 @@ function love.update(dt)
 
     local empty = true
 
-    if love.keyboard.isDown('w') then
-        empty = false
-        mvt.up = true
-    end
-    if love.keyboard.isDown('a') then
-        empty = false
-        mvt.left = true
-    end
-    if love.keyboard.isDown('d') then
-        empty = false
-        mvt.right = true
+    if not ui.chatOpen then
+        if love.keyboard.isDown('w') then
+            empty = false
+            mvt.up = true
+        end
+        if love.keyboard.isDown('a') then
+            empty = false
+            mvt.left = true
+        end
+        if love.keyboard.isDown('d') then
+            empty = false
+            mvt.right = true
+        end
     end
 
     if prediction and myID then
@@ -215,11 +241,11 @@ function love.draw(dt)
         love.graphics.print('Waiting for Connection', (love.graphics.getWidth()/2), love.graphics.getHeight()/2)
     end
 
-    if prediction then
-        love.graphics.print("Prediction ON", 0, 0)
-    else
-        love.graphics.print("Prediction OFF", 0, 0)
-    end
+    -- if prediction then
+    --     love.graphics.print("Prediction ON", 0, 0)
+    -- else
+    --     love.graphics.print("Prediction OFF", 0, 0)
+    -- end
 
     camera:set()
     for _, v in pairs(objects) do

@@ -12,6 +12,7 @@ local creation_pkktid = 0x02
 local movement_pktid = 0x03
 local update_pktid = 0x04
 local destruction_pktid = 0x05
+local chat_pltid = 0x06
 
 local clients = {}
 
@@ -90,6 +91,15 @@ function Net:update(peer, id, obj)
     peer:send(mp.pack(data), update_pktid, "unreliable")
 end
 
+function Net:msg(peer, name, msg)
+    local data = {
+        name = name;
+        msg = msg;
+    }
+
+    peer:send(mp.pack(data), chat_pktid, "reliable")
+end
+
 function Net:destroy(peer, id)
     local data = {
         id = id;
@@ -100,12 +110,16 @@ end
 
 function Net:parse(peer, channel, data)
     if channel == connection_pktid then
-        if self.joinCallback then
+        if self.creationCallback then
             self.creationCallback(peer, mp.unpack(data))
         end
     elseif channel == movement_pktid then
         if self.movementCallback then
             self.movementCallback(peer, mp.unpack(data))
+        end
+    elseif channel == chat_pktid then
+        if self.chatCallback then
+            self.chatCallbakc(peer, mp.unpack(data))
         end
     end
 end

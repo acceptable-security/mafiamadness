@@ -1,13 +1,17 @@
-local ffi = require("ffi")
+local mp = require("shared/MessagePack")
 
 require "enet"
-local mp = require "shared/MessagePack"
+
+mp.set_number('float')
+mp.set_array('with_hole')
+mp.set_string('string')
 
 local connection_pktid = 0x01
 local creation_pkktid = 0x02
 local movement_pktid = 0x03
 local update_pktid = 0x04
 local destruction_pktid = 0x05
+local chat_pktid = 0x06
 
 local clients = {}
 
@@ -46,7 +50,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip, 5)
+    self.server = self.host:connect(ip, 6)
 end
 
 function Net:join(name, ver)
@@ -54,8 +58,17 @@ function Net:join(name, ver)
         name = name;
         ver = ver;
     }
+    
+    self.server:send(mp.pack(data), connection_pktid, "reliable")
+end
 
-    self.server:send(mp.pack(data), creation_pktid, "reliable")
+function Net:msg(msg, loc)
+    local data = {
+        msg = msg;
+        loc = loc;
+    }
+
+    self.server:send(mp.pack(data), chat_pktid, "reliable")
 end
 
 function Net:move(mvt)
@@ -74,6 +87,10 @@ function Net:parse(channel, data)
     elseif channel == destruction_pktid then
         if self.destructionCallback then
             self.destructionCallback(mp.unpack(data))
+        end
+    elseif channel == chat_pktid then
+        if self.chatCallback then
+            self.chatCallback(mp.unpack(data))
         end
     end
 end
