@@ -160,8 +160,6 @@ function love.keypressed(k)
             love.event.quit()
         elseif k == "p" then
             prediction = not prediction
-        elseif k == "t" then
-            ui.chatOpen = true
         end
     else
         if k == "return" then
@@ -183,6 +181,8 @@ end
 function love.textinput(k)
     if ui.chatOpen then
         ui.tmpMsg = ui.tmpMsg .. k
+    elseif k == "t" then
+        ui.chatOpen = true
     end
 end
 
