@@ -166,7 +166,7 @@ function love.load(args)
                 if data.loc == "global" then
                     for k, v in ipairs(players) do
                         if v.peer ~= peer then
-                            net:update(v.peer, d.name, data.msg)
+                            net:msg(v.peer, d.name, data.msg)
                         end
                     end
                 -- elseif data.loc == "local"

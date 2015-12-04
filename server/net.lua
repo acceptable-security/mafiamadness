@@ -77,6 +77,7 @@ function Net:create(peer, id, obj)
 end
 
 function Net:update(peer, id, obj)
+
     local vx, vy = obj.body:getLinearVelocity()
 
     local data = {
@@ -109,7 +110,6 @@ function Net:destroy(peer, id)
 end
 
 function Net:parse(peer, channel, data)
-    print(channel .. "blah")
     if channel == connection_pktid then
         if self.creationCallback then
             self.creationCallback(peer, mp.unpack(data))
@@ -119,7 +119,6 @@ function Net:parse(peer, channel, data)
             self.movementCallback(peer, mp.unpack(data))
         end
     elseif channel == chat_pktid then
-        print("TEST")
         if self.chatCallback then
             self.chatCallback(peer, mp.unpack(data))
         end
