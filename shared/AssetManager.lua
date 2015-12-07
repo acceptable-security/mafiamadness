@@ -18,7 +18,7 @@ local Asset = {
     bodyType = "dynamic";
     collision = {};
     density = 1;
-    friction = 5;
+    friction = 1;
     rotable = true;
 }
 
@@ -167,8 +167,6 @@ function Asset.new(asmgr, self)
         end
 
         self.draw = function (obj)
-            if not obj.state then obj.state = "root" end
-
             if obj.image[obj.state][obj.imageState] then
                 local img = obj.image[obj.state][obj.imageState]
 
@@ -222,6 +220,9 @@ function Asset:instance(world, x, y)
         lastFrame = 0.0;
         currFrame = 0.0;
         frameLen = 0.03;
+        imageState = 1;
+        state = "root";
+
         x = x;
         y = y;
         image = self.image;

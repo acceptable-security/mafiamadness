@@ -104,8 +104,16 @@ function love.load(args)
     })
 
     print("loaded " .. assetMgr:load {
+        name = "otherbox";
+        file = "shared/assets/png/ground.png";
+        bodyType = "static";
+        type = "object";
+    })
+
+    print("loaded " .. assetMgr:load {
         name = "player";
         rotable = false;
+        friction = 0.1;
         file = {
             root = {
                 "shared/assets/png/character/front.png"
@@ -231,6 +239,7 @@ function love.load(args)
     }
 
     createObject("box", 0, 200)
+    createObject("otherbox", 64, 200)
 end
 
 function love.keypressed(k)
