@@ -2,6 +2,20 @@ local UI = require("client/ui")
 local Camera = require("client/camera")
 local Entities = require("shared/entities")
 local Net = require("client/net")
+local AssetManager = require("shared/AssetManager")
+
+function tprint (tbl, indent)
+  if not indent then indent = 0 end
+  for k, v in pairs(tbl) do
+    formatting = string.rep("  ", indent) .. k .. ": "
+    if type(v) == "table" then
+      print(formatting)
+      tprint(v, indent+1)
+    else
+      print(formatting .. tostring(v))
+    end
+  end
+end
 
 require("client/math")
 
@@ -32,23 +46,13 @@ function love.load(arg)
         end;
 
         creationCallback = function(data)
-            local type = Entities.entities[data.type]
-
             if not myID then
-                myID = data.id
+                myID = data.id-- BLAH BLAH REPLACE WITH NEW OR SOMETHIN
             end
 
-            objects[data.id] = type.new {
-                x = data.px;
-                y = data.py;
-                velX = data.vx;
-                velY = data.vy;
-                angle = data.a;
-            }
-
-            if objects[data.id].createPhysics then
-                objects[data.id]:createPhysics(ourWorld)
-            end
+            objects[data.id] = assetMgr:inst(data.asset, data.px, data.py)
+            objects[data.id].body:setLinearVelocity(data.vx, data.vy)
+            objects[data.id].body:setAngle(data.a)
         end;
 
         chatCallback = function(data)
@@ -76,7 +80,7 @@ function love.load(arg)
                         objects[myID].body:setPosition(data.px, data.py)
 
                         for _, k in ipairs(lastMovements) do
-                            objects[myID]:applyMovement(k)
+                            objects[myID]:move(k)
                             -- ourWorld:update(k.dt)
                         end
 
@@ -94,8 +98,11 @@ function love.load(arg)
         end;
 
         destructionCallback = function(data)
-            -- objects[data.id] = nil
             table.remove(objects, data.id)
+        end;
+
+        assetCallback = function(data)
+            assetMgr:load(data)
         end;
     }
 
@@ -109,6 +116,10 @@ function love.load(arg)
     ourWorld = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
     prediction = true
     lastMovements = {}
+
+    assetMgr = AssetManager.new({
+        world = ourWorld;
+    })
 
     ourWorld:setCallbacks(function (a, b, col)
         x, y = col:getNormal()
@@ -214,7 +225,7 @@ function love.update(dt)
     end
 
     if prediction and myID and objects[myID] then
-        objects[myID]:applyMovement(mvt)
+        objects[myID]:move(mvt)
 
         ourWorld:update(0.017)
 

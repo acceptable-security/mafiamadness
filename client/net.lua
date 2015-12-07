@@ -12,6 +12,7 @@ local movement_pktid = 0x03
 local update_pktid = 0x04
 local destruction_pktid = 0x05
 local chat_pktid = 0x06
+local asset_pktid = 0x07
 
 local clients = {}
 
@@ -25,6 +26,7 @@ local Net = {
     creationCallback = nil;
     updateCallback = nil;
     destructionCallback = nil;
+    assetCallback = nil;
 }
 
 Net.__index = Net
@@ -50,7 +52,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip, 7)
+    self.server = self.host:connect(ip, 8)
 end
 
 function Net:join(name, ver)
@@ -91,6 +93,10 @@ function Net:parse(channel, data)
     elseif channel == chat_pktid then
         if self.chatCallback then
             self.chatCallback(mp.unpack(data))
+        end
+    elseif channel == asset_pktid then
+        if self.assetCallback then
+            self.assetCallback(mp.unpack(data))
         end
     end
 end

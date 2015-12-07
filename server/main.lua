@@ -1,5 +1,6 @@
 local Net = require("server/net")
 local Entities = require("shared/entities")
+local AssetManager = require("shared/AssetManager")
 
 function tprint (tbl, indent)
   if not indent then indent = 0 end
@@ -9,31 +10,32 @@ function tprint (tbl, indent)
       print(formatting)
       tprint(v, indent+1)
     else
-      print(formatting .. v)
+      print(formatting .. tostring(v))
     end
   end
 end
 
 objects = {}
 
-function newObject(type, data)
-    local obj = type.new(data)
+function newObject(asset, x, y)
+    local obj = assetMgr:inst(asset, x, y)
+
+    if obj == nil then return nil, -1 end
+
     local id = objectID
     objectID = objectID + 1
 
-    if obj.createPhysics then
-        obj:createPhysics(world)
-    end
-
     for _, v in pairs(players) do
-        net:create(v.peer, id, obj)
+        net:createObject(v.peer, id, obj)
     end
 
     return obj, id
 end
 
-function createObject(type, data)
-    obj, id = newObject(type, data)
+function createObject(asset, x, y)
+    obj, id = newObject(asset, x, y)
+
+    if obj == nil then return end
 
     objects[id] = {
         obj = obj;
@@ -44,6 +46,7 @@ end
 function love.load(args)
     love.physics.setMeter(64)
     gravity = 9.81
+
     world = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
     world:setCallbacks(function (a, b, col)
         x, y = col:getNormal()
@@ -88,6 +91,48 @@ function love.load(args)
     end, _, _)
 
     players = {}
+
+    assetMgr = AssetManager.new {
+        world = world;
+    }
+
+    print("loaded " .. assetMgr:load {
+        name = "box";
+        file = "shared/assets/png/block.png";
+        bodyType = "static";
+        type = "object";
+    })
+
+    print("loaded " .. assetMgr:load {
+        name = "player";
+        rotable = false;
+        file = {
+            root = {
+                "shared/assets/png/character/front.png"
+            };
+            walking = {
+                "shared/assets/png/character/walk/walk0001.png";
+                "shared/assets/png/character/walk/walk0002.png";
+                "shared/assets/png/character/walk/walk0003.png";
+                "shared/assets/png/character/walk/walk0004.png";
+                "shared/assets/png/character/walk/walk0005.png";
+                "shared/assets/png/character/walk/walk0006.png";
+                "shared/assets/png/character/walk/walk0007.png";
+                "shared/assets/png/character/walk/walk0008.png";
+                "shared/assets/png/character/walk/walk0009.png";
+                "shared/assets/png/character/walk/walk0010.png";
+                "shared/assets/png/character/walk/walk0011.png";
+            };
+            jumping = {
+                "shared/assets/png/character/jump.png";
+            };
+            falling = {
+                "shared/assets/png/character/jump.png";
+            }
+        };
+        type = "player";
+    })
+
     objectID = 0
 
     net = Net.new {
@@ -101,16 +146,24 @@ function love.load(args)
                 obj = nil;
             }
 
-            pobj.obj, pobj.objectID = newObject(Entities.entities[2], {})
+            pobj.obj, pobj.objectID = newObject("player", 0, 0)
 
-            net:create(peer, pobj.objectID, pobj.obj)
+            if pobj.obj == nil then
+                print("OH FUCK")
+            end
+
+            for _, k in pairs(assetMgr.assets) do
+                net:createAsset(peer, k)
+            end
+
+            net:createObject(peer, pobj.objectID, pobj.obj)
 
             for _, k in pairs(players) do
-                net:create(peer, k.objectID, k.obj)
+                net:createObject(peer, k.objectID, k.obj)
             end
 
             for v, k in pairs(objects) do
-                net:create(peer, k.objectID, k.obj)
+                net:createObject(peer, k.objectID, k.obj)
             end
 
             table.insert(players, pobj)
@@ -148,7 +201,7 @@ function love.load(args)
             end
 
             if d then
-                d.obj:applyMovement(data)
+                d.obj:move(data)
             end
         end;
 
@@ -177,14 +230,14 @@ function love.load(args)
         end;
     }
 
-    createObject(Entities.entities[1], { x = 0; y = 200; })
+    createObject("box", 0, 200)
 end
 
 function love.keypressed(k)
     if k == 'escape' then
         love.event.quit()
     elseif k == 'w' then
-        createObject(Entities.entities[1], { x = math.random(100, 1000); y = math.random(100, 300); })
+        createObject("box", math.random(100, 1000), math.random(100, 300))
     end
 end
 

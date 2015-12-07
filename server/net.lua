@@ -13,6 +13,7 @@ local movement_pktid = 0x03
 local update_pktid = 0x04
 local destruction_pktid = 0x05
 local chat_pktid = 0x06
+local asset_pktid = 0x07
 
 local clients = {}
 
@@ -48,24 +49,31 @@ function Net.new(self)
     return setmetatable(self, Net)
 end
 
-function Net:create(peer, id, obj)
-    local type = nil
-    for k, v in ipairs(Entities.entities) do
-        if v.type == obj.type then
-            type = k
-        end
-    end
+function Net:createAsset(peer, asset)
+    local itmp = asset.image
+    local utmp = asset.update
+    local dtmp = asset.draw
+    local mtmp = asset.move
 
-    if type == nil then
-        error("Unable to identify type " .. obj.type)
-        return
-    end
+    asset.image = nil
+    asset.update = nil
+    asset.draw = nil
+    asset.move = nil
 
+    peer:send(mp.pack(asset), asset_pktid, "reliable")
+
+    asset.image = itmp
+    asset.update = utmp
+    asset.draw = dtmp
+    asset.move = mtmp
+end
+
+function Net:createObject(peer, id, obj)
     local vx, vy = obj.body:getLinearVelocity()
 
     data = {
         id = id;
-        type = type;
+        asset = obj.asset;
         px = obj.body:getX();
         py = obj.body:getY();
         vx = vx;
@@ -77,7 +85,6 @@ function Net:create(peer, id, obj)
 end
 
 function Net:update(peer, id, obj)
-
     local vx, vy = obj.body:getLinearVelocity()
 
     local data = {
