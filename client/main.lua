@@ -336,10 +336,10 @@ function love.draw(dt)
 
     for k, v in ipairs(projectiles) do
         love.graphics.push()
-        love.graphics.translate(v.x, v.yd)
+        love.graphics.translate(v.x, v.y)
         love.graphics.push()
         love.graphics.rotate(v.angle)
-        love.graphics.rectangle("fill", 0, 0, v.len, 5)
+        love.graphics.rectangle("fill", 0, 0, v.len, 5 - (((love.timer.getTime() - v.added) / 0.5) * 5))
         love.graphics.pop()
         love.graphics.pop()
 
