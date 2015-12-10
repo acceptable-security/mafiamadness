@@ -14,6 +14,7 @@ local update_pktid = 0x04
 local destruction_pktid = 0x05
 local chat_pktid = 0x06
 local asset_pktid = 0x07
+local shoot_pktid = 0x08
 
 local clients = {}
 
@@ -25,6 +26,8 @@ local Net = {
     disconnectCallback = nil;
     creationCallback = nil;
     movementCallback = nil;
+    chatCallback = nil;
+    shootCallback = nil;
 }
 
 Net.__index = Net
@@ -96,7 +99,17 @@ function Net:update(peer, id, obj)
         a = obj.body:getAngle();
     }
 
+    if obj.wepAngle then data.wepAngle = obj.wepAngle end
+
     peer:send(mp.pack(data), update_pktid, "unreliable")
+end
+
+function Net:shoot(peer, id)
+    local data = {
+        id = id;
+    }
+
+    peer:send(mp.pack(data), shoot_pktid, "unreliable")
 end
 
 function Net:msg(peer, name, msg)
@@ -128,6 +141,10 @@ function Net:parse(peer, channel, data)
     elseif channel == chat_pktid then
         if self.chatCallback then
             self.chatCallback(peer, mp.unpack(data))
+        end
+    elseif channel == shoot_pktid then
+        if self.shootCallback then
+            self.shootCallback(peer, mp.unpack(data))
         end
     end
 end

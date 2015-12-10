@@ -115,6 +115,7 @@ function love.load(args)
         rotable = false;
         friction = 0.1;
         file = {
+            weapon = "shared/assets/png/key_red.png";
             root = {
                 "shared/assets/png/character/front.png"
             };
@@ -139,6 +140,14 @@ function love.load(args)
             }
         };
         type = "player";
+    })
+
+    print("loaded " .. assetMgr:load {
+        name = "coin";
+        file = "shared/assets/png/coin_gold.png";
+        bodyType = "dynamic";
+        type = "object";
+        collision = { 10 };
     })
 
     objectID = 0
@@ -210,6 +219,12 @@ function love.load(args)
 
             if d then
                 d.obj:move(data)
+
+                if data.wepAngle then
+                    d.obj.wepAngle = data.wepAngle
+                else
+                    d.obj.wepAngle = nil
+                end
             end
         end;
 
@@ -236,10 +251,54 @@ function love.load(args)
                 end
             end
         end;
+
+        shootCallback = function(peer, data)
+            d = nil
+
+            for k, v in ipairs(players) do
+                if v.peer == peer then
+                    d = v
+                    break
+                end
+            end
+
+            if d and d.obj.wepAngle then
+                if d.lastShot and d.lastShot - love.timer.getTime() > 0.5 then
+                    return
+                end
+
+                if d.obj.wepAngle == nan then return end
+
+                d.lastShot = love.timer.getTime()
+
+                local len = 500
+
+                local y = d.obj.body:getY() - (len * math.sin(d.obj.wepAngle))
+                local x = d.obj.body:getX() + (len * math.cos(d.obj.wepAngle))
+
+                print("(" .. d.obj.body:getX() .. ", " .. d.obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
+
+                for k, v in ipairs(players) do
+                    net:shoot(v.peer, d.objectID)
+                end
+
+                world:rayCast(d.obj.body:getX(), d.obj.body:getY(), x, y, function (fixture, x, y, xn, yn, fraction)
+                    local b = fixture:getBody()
+                    local d = b:getUserData()
+
+                    if d and d.asset == "player" then
+                        d.body:applyLinearImpulse(0, -1000)
+                    end
+
+                    return 0
+                end)
+            end
+        end;
     }
 
     createObject("box", 0, 200)
-    createObject("otherbox", 64, 200)
+    createObject("otherbox", 100, 200)
+    createObject("coin", 75, 0)
 end
 
 function love.keypressed(k)

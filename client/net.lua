@@ -13,6 +13,7 @@ local update_pktid = 0x04
 local destruction_pktid = 0x05
 local chat_pktid = 0x06
 local asset_pktid = 0x07
+local shoot_pktid = 0x08
 
 local clients = {}
 
@@ -52,7 +53,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip, 8)
+    self.server = self.host:connect(ip, 9)
 end
 
 function Net:join(name, ver)
@@ -62,6 +63,12 @@ function Net:join(name, ver)
     }
 
     self.server:send(mp.pack(data), connection_pktid, "reliable")
+end
+
+function Net:shoot()
+    local data = {}
+
+    self.server:send(mp.pack(data), shoot_pktid, "unreliable")
 end
 
 function Net:msg(msg, loc)
@@ -97,6 +104,10 @@ function Net:parse(channel, data)
     elseif channel == asset_pktid then
         if self.assetCallback then
             self.assetCallback(mp.unpack(data))
+        end
+    elseif channel == shoot_pktid then
+        if self.shootCallback then
+            self.shootCallback(mp.unpack(data))
         end
     end
 end

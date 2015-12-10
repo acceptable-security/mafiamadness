@@ -25,6 +25,10 @@ local myID = nil
 local ui = nil
 
 function love.load(arg)
+    wep = false
+    projectiles = {}
+
+
     love.physics.setMeter(64) --the height of a meter our worlds will be 64px
     love.graphics.setBackgroundColor(155, 207, 198)
 
@@ -61,11 +65,19 @@ function love.load(arg)
 
         updateCallback = function(data)
             if love.keyboard.isDown("l") then
-                if objects[data.id].update then objects[data.id]:update(0.01) end
+                if objects[data.id] and objects[data.id].update then
+                    objects[data.id]:update(0.01)
+                end
                 return
             end
 
             if objects[data.id] then
+                if data.wepAngle then
+                    objects[data.id].wepAngle = data.wepAngle
+                else
+                    objects[data.id].wepAngle = nil
+                end
+
                 if objects[data.id].body then
                     dx, dy = (data.px - objects[data.id].body:getX()), (data.py - objects[data.id].body:getY())
                     d = (dx^2 + dy^2)^0.5
@@ -103,6 +115,38 @@ function love.load(arg)
 
         assetCallback = function(data)
             assetMgr:load(data)
+        end;
+
+        shootCallback = function(data)
+            local o = objects[data.id]
+            if not o then return end
+
+            local len = 500
+
+            local y = o.body:getY() - (len * math.sin(o.wepAngle))
+            local x = o.body:getX() + (len * math.cos(o.wepAngle))
+
+            table.insert(projectiles, {
+                x = o.body:getX();
+                y = o.body:getY();
+                len = len;
+                angle = o.wepAngle;
+                added = love.timer.getTime();
+            })
+
+            print("(" .. obj.body:getX() .. ", " .. obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
+
+            ourWorld:rayCast(o.body:getX(), o.body:getY(), x, y, function (fixture, x, y, xn, yn, fraction)
+                local b = fixture:getBody()
+                local d = b:getUserData()
+
+                if d and d.asset == "player" then
+                    print("HIT!")
+                    d.body:applyLinearImpulse(0, -1000)
+                end
+
+                return 0
+            end)
         end;
     }
 
@@ -164,6 +208,12 @@ function love.load(arg)
     end, _, _)
 end
 
+function love.mousepressed(x, y, button)
+    if button == "l" and myID and objects[myID] and objects[myID].wepAngle then
+        net:shoot()
+    end
+end
+
 function love.keypressed(k)
     if not ui.chatOpen then
         if k == "escape" then
@@ -171,6 +221,19 @@ function love.keypressed(k)
             love.event.quit()
         elseif k == "p" then
             prediction = not prediction
+        elseif k == "q" then
+            if objects[myID] then
+                wep = not wep
+
+                if not wep then
+                    net:move({
+                        up = false;
+                        left = false;
+                        right = false;
+                        down = false;
+                    })
+                end
+            end
         end
     else
         if k == "return" then
@@ -224,6 +287,16 @@ function love.update(dt)
         end
     end
 
+    if myID and objects[myID] and wep then
+        local x = (love.mouse.getX() + camera.x) - objects[myID].body:getX()
+        local y = (love.mouse.getY() + camera.y) - objects[myID].body:getY()
+        mvt.wepAngle = math.atan(y/x)
+
+        if x < 0 then mvt.wepAngle = mvt.wepAngle + math.pi end
+
+        empty = false
+    end
+
     if prediction and myID and objects[myID] then
         objects[myID]:move(mvt)
 
@@ -240,8 +313,8 @@ function love.update(dt)
     end
 
     if objects[myID] then
-        camera:setPosition((objects[myID].body:getX() - (love.graphics.getWidth() / 2)) / 2,
-                           (objects[myID].body:getY() - (love.graphics.getHeight() / 2)) / 2)
+        camera:setPosition((objects[myID].body:getX() + 5 - (love.graphics.getWidth() / 2)) / 2,
+                           (objects[myID].body:getY() + 5 - (love.graphics.getHeight() / 2)) / 2)
     end
 end
 
@@ -254,18 +327,27 @@ function love.draw(dt)
         love.graphics.print('Waiting for Connection', (love.graphics.getWidth()/2), love.graphics.getHeight()/2)
     end
 
-    -- if prediction then
-    --     love.graphics.print("Prediction ON", 0, 0)
-    -- else
-    --     love.graphics.print("Prediction OFF", 0, 0)
-    -- end
-
     camera:set()
     for _, v in pairs(objects) do
         if v and v.draw then
             v:draw(prediction)
         end
     end
+
+    for k, v in ipairs(projectiles) do
+        love.graphics.push()
+        love.graphics.translate(v.x, v.yd)
+        love.graphics.push()
+        love.graphics.rotate(v.angle)
+        love.graphics.rectangle("fill", 0, 0, v.len, 5)
+        love.graphics.pop()
+        love.graphics.pop()
+
+        if love.timer.getTime() - v.added >= 0.5 then
+            table.remove(projectiles, k)
+        end
+    end
+
     camera:unset()
 
     ui:draw()

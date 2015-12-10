@@ -176,6 +176,10 @@ function Asset.new(asmgr, self)
                 velX = select(1, obj.body:getLinearVelocity())
 
                 love.graphics.draw(img, round(x), round(y), angle, velX < -1 and -1 or 1, 1, round((img:getWidth()/2)), round((img:getHeight()/2)))
+
+                if obj.wepAngle and obj.image["weapon"] then
+                    love.graphics.draw(obj.image["weapon"], obj.body:getX() + 5, obj.body:getY() + 5, obj.wepAngle, 1, 1)
+                end
             end
         end
 
