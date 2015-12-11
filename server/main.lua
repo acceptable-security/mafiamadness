@@ -169,11 +169,11 @@ function love.load(args)
                 print("OH FUCK")
             end
 
+            table.insert(players, pobj)
+
             for _, k in pairs(assetMgr.assets) do
                 net:createAsset(peer, k)
             end
-
-            net:createObject(peer, pobj.objectID, pobj.obj)
 
             for _, k in pairs(players) do
                 net:createObject(peer, k.objectID, k.obj)
@@ -183,7 +183,7 @@ function love.load(args)
                 net:createObject(peer, k.objectID, k.obj)
             end
 
-            table.insert(players, pobj)
+            net:control(peer, pobj.objectID)
         end;
 
         disconnectCallback = function (peer)
@@ -217,7 +217,7 @@ function love.load(args)
                 end
             end
 
-            if d then
+            if d and d.objectID then
                 d.obj:move(data)
 
                 if data.wepAngle then
@@ -273,7 +273,7 @@ function love.load(args)
 
                 local len = 500
 
-                local y = d.obj.body:getY() - (len * math.sin(d.obj.wepAngle))
+                local y = d.obj.body:getY() + (len * math.sin(d.obj.wepAngle))
                 local x = d.obj.body:getX() + (len * math.cos(d.obj.wepAngle))
 
                 print("(" .. d.obj.body:getX() .. ", " .. d.obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
@@ -284,10 +284,18 @@ function love.load(args)
 
                 world:rayCast(d.obj.body:getX(), d.obj.body:getY(), x, y, function (fixture, x, y, xn, yn, fraction)
                     local b = fixture:getBody()
-                    local d = b:getUserData()
 
-                    if d and d.asset == "player" then
-                        d.body:applyLinearImpulse(0, -1000)
+                    if b == d.obj.body then
+                        print("AYY")
+                        return 1
+                    end
+
+                    print("BUTTS")
+
+                    local data = b:getUserData()
+
+                    if data and data.asset == "player" then
+                        data.body:applyLinearImpulse(0, -1000)
                     end
 
                     return 0

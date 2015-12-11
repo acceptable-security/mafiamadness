@@ -50,10 +50,6 @@ function love.load(arg)
         end;
 
         creationCallback = function(data)
-            if not myID then
-                myID = data.id-- BLAH BLAH REPLACE WITH NEW OR SOMETHIN
-            end
-
             objects[data.id] = assetMgr:inst(data.asset, data.px, data.py)
             objects[data.id].body:setLinearVelocity(data.vx, data.vy)
             objects[data.id].body:setAngle(data.a)
@@ -93,7 +89,6 @@ function love.load(arg)
 
                         for _, k in ipairs(lastMovements) do
                             objects[myID]:move(k)
-                            -- ourWorld:update(k.dt)
                         end
 
                         lastMovements = {}
@@ -123,7 +118,7 @@ function love.load(arg)
 
             local len = 500
 
-            local y = o.body:getY() - (len * math.sin(o.wepAngle))
+            local y = o.body:getY() + (len * math.sin(o.wepAngle))
             local x = o.body:getX() + (len * math.cos(o.wepAngle))
 
             table.insert(projectiles, {
@@ -147,6 +142,10 @@ function love.load(arg)
 
                 return 0
             end)
+        end;
+
+        controlCallback = function(data)
+            myID = data.id
         end;
     }
 
@@ -308,7 +307,7 @@ function love.update(dt)
         })
     end
 
-    if not empty then
+    if not empty and myID then
         net:move(mvt)
     end
 

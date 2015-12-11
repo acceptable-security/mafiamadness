@@ -15,6 +15,7 @@ local destruction_pktid = 0x05
 local chat_pktid = 0x06
 local asset_pktid = 0x07
 local shoot_pktid = 0x08
+local control_pktid = 0x09
 
 local clients = {}
 
@@ -74,7 +75,7 @@ end
 function Net:createObject(peer, id, obj)
     local vx, vy = obj.body:getLinearVelocity()
 
-    data = {
+    local data = {
         id = id;
         asset = obj.asset;
         px = obj.body:getX();
@@ -85,6 +86,14 @@ function Net:createObject(peer, id, obj)
     }
 
     peer:send(mp.pack(data), creation_pktid, "reliable")
+end
+
+function Net:control(peer, id)
+    local data = {
+        id = id;
+    }
+
+    peer:send(mp.pack(data), control_pktid, "reliable")
 end
 
 function Net:update(peer, id, obj)

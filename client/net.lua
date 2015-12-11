@@ -14,6 +14,7 @@ local destruction_pktid = 0x05
 local chat_pktid = 0x06
 local asset_pktid = 0x07
 local shoot_pktid = 0x08
+local control_pktid = 0x09
 
 local clients = {}
 
@@ -53,7 +54,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip, 9)
+    self.server = self.host:connect(ip, 10)
 end
 
 function Net:join(name, ver)
@@ -108,6 +109,10 @@ function Net:parse(channel, data)
     elseif channel == shoot_pktid then
         if self.shootCallback then
             self.shootCallback(mp.unpack(data))
+        end
+    elseif channel == control_pktid then
+        if self.controlCallback then
+            self.controlCallback(mp.unpack(data))
         end
     end
 end
