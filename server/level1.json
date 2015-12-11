@@ -64,6 +64,26 @@
             "y": 200
         },
         {
+            "asset": "otherbox",
+            "x": 140,
+            "y": 200
+        },
+        {
+            "asset": "otherbox",
+            "x": 210,
+            "y": 200
+        },
+        {
+            "asset": "otherbox",
+            "x": 280,
+            "y": 200
+        },
+        {
+            "asset": "otherbox",
+            "x": 350,
+            "y": 200
+        },
+        {
             "asset": "coin",
             "x": 70,
             "y": 0

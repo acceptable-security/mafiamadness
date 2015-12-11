@@ -22,6 +22,7 @@ local debug = true
 local paused = false
 local myID = nil
 local ui = nil
+local myName = ""
 
 function love.load(arg)
     wep = false
@@ -40,7 +41,7 @@ function love.load(arg)
     net = Net.new {
         connectCallback = function()
             connected = true
-            net:join("Anonymous", 1)
+            ui.nameEntryOpen = true
         end;
 
         disconnectCallback = function()
@@ -227,7 +228,7 @@ function love.mousepressed(x, y, button)
 end
 
 function love.keypressed(k)
-    if not ui.chatOpen then
+    if not ui.chatOpen and not ui.nameEntryOpen then
         if k == "escape" then
             net:close()
             love.event.quit()
@@ -249,10 +250,24 @@ function love.keypressed(k)
         end
     else
         if k == "return" then
-            ui:msg("Anonymous", ui.tmpMsg)
-            net:msg(ui.tmpMsg, "global")
-            ui.tmpMsg = ""
-            ui.chatOpen = false
+            if ui.nameEntryOpen then
+                if #ui.tmpMsg < 1 then
+                    return
+                end
+                
+                net:join(ui.tmpMsg, 1)
+                myName = ui.tmpMsg
+                ui.tmpMsg = ""
+                ui.nameEntryOpen = false
+            else
+                if #ui.tmpMsg > 0 then
+                    ui:msg(myName, ui.tmpMsg)
+                    net:msg(ui.tmpMsg, "global")
+                end
+
+                ui.tmpMsg = ""
+                ui.chatOpen = false
+            end
         elseif k == "backspace" then
             if #ui.tmpMsg > 0 then
                 ui.tmpMsg = ui.tmpMsg:sub(1, #ui.tmpMsg - 1)
@@ -265,7 +280,7 @@ function love.keypressed(k)
 end
 
 function love.textinput(k)
-    if ui.chatOpen then
+    if ui.chatOpen or ui.nameEntryOpen then
         ui.tmpMsg = ui.tmpMsg .. k
     elseif k == "t" then
         ui.chatOpen = true

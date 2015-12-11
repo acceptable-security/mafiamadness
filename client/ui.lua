@@ -4,6 +4,7 @@ local UI = {
     timer = "00:00";
     transparency = 0.6;
     chatOpen = false;
+    nameEntryOpen = false;
     messages = {};
 
     defaultFont = love.graphics.newFont("shared/assets/fonts/Vera.ttf");
@@ -19,6 +20,7 @@ function UI.new(self)
     self.transparency = self.transparency or 0.2
 
     self.chatOpen = self.chatOpen or false
+    self.nameEntryOpen = self.nameEntryOpen or false
     self.tmpMsg = ""
     self.messages = self.messages or {}
 
@@ -64,23 +66,38 @@ function UI:draw()
         love.graphics.print(self.tmpMsg, 10, 220)
     end
 
-    local tot = ""
+    if self.nameEntryOpen then
+        love.graphics.setColor(25, 25, 25, 100)
+        love.graphics.rectangle("fill", 0, 0, love.window.getWidth(), love.window.getHeight())
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.setFont(self.clockFont)
 
-    for _, msg in ipairs(self.messages) do
-        tot = tot .. msg.name .. ": " .. msg.msg .. "\n"
+        love.graphics.print("Enter your Name", (love.graphics.getWidth() - self.clockFont:getWidth("Enter your Name")) / 2, (love.graphics.getHeight() / 2) - self.clockFont:getHeight())
+        love.graphics.print(self.tmpMsg, (love.graphics.getWidth() - self.clockFont:getWidth(self.tmpMsg)) / 2, love.graphics.getHeight() / 2)
     end
 
-    love.graphics.printf(tot, 10, 10, 200)
+    if #self.messages > 0 then
+        local tot = ""
 
+        for _, msg in ipairs(self.messages) do
+            tot = tot .. msg.name .. ": " .. msg.msg .. "\n"
+        end
 
-    love.graphics.setColor(25, 25, 25)
-    love.graphics.setFont(self.mafiaFont)
-    local text = "You are " .. self.roll
-    love.graphics.print(text, love.window.getWidth() - self.mafiaFont:getWidth(text), love.window.getHeight() - 60)
+        love.graphics.printf(tot, 10, 10, 200)
+    end
 
-    love.graphics.setFont(self.clockFont)
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.printf(self.timer, (love.graphics.getWidth() / 2) - self.clockFont:getWidth(self.timer), 0, 100, "center")
+    if self.roll ~= nil then
+        love.graphics.setColor(25, 25, 25)
+        love.graphics.setFont(self.mafiaFont)
+        local text = "You are " .. self.roll
+        love.graphics.print(text, love.window.getWidth() - self.mafiaFont:getWidth(text), love.window.getHeight() - 60)
+    end
+
+    if self.timer ~= nil then
+        love.graphics.setFont(self.clockFont)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.printf(self.timer, (love.graphics.getWidth() / 2) - self.clockFont:getWidth(self.timer), 0, 100, "center")
+    end
 
     love.graphics.setColor(255, 255, 255)
     love.graphics.setFont(self.defaultFont)
