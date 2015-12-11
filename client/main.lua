@@ -1,6 +1,5 @@
 local UI = require("client/ui")
 local Camera = require("client/camera")
-local Entities = require("shared/entities")
 local Net = require("client/net")
 local AssetManager = require("shared/AssetManager")
 
@@ -41,7 +40,7 @@ function love.load(arg)
     net = Net.new {
         connectCallback = function()
             connected = true
-            net:join("Anonymous", Entities.version)
+            net:join("Anonymous", 1)
         end;
 
         disconnectCallback = function()
@@ -136,6 +135,14 @@ function love.load(arg)
                 angle = o.wepAngle;
                 added = love.timer.getTime();
             })
+
+            local ind = #projectiles
+
+            ourWorld:rayCast(o.body:getX(), o.body:getY(), x, y, function (fixture, x, y, xn, yn, fraction)
+                projectiles[ind].len = ((xn-x)^2 + (yn-y)^2)^0.5
+
+                return 0
+            end)
         end;
 
         controlCallback = function(data)
@@ -164,6 +171,12 @@ function love.load(arg)
 
     ourWorld:setCallbacks(function (a, b, col)
         x, y = col:getNormal()
+        x = math.floor(0.5 + x)
+        y = math.floor(0.5 + y)
+
+        if x ~= 0 and y ~= 1 then
+            return
+        end
 
         if a:getBody():getUserData() then
             if not a:getBody():getUserData().numContacts or a:getBody():getUserData().numContacts < 0  then
@@ -182,6 +195,8 @@ function love.load(arg)
         end
     end, function(a, b, col)
         x, y = col:getNormal()
+        x = math.floor(0.5 + x)
+        y = math.floor(0.5 + y)
 
         if x ~= 0 and y ~= 1 then
             return
@@ -334,16 +349,16 @@ function love.draw(dt)
     end
 
     for k, v in ipairs(projectiles) do
-        love.graphics.push()
-        love.graphics.translate(v.x, v.y)
-        love.graphics.push()
-        love.graphics.rotate(v.angle)
-        love.graphics.rectangle("fill", 0, 0, v.len, 5 - (((love.timer.getTime() - v.added) / 0.5) * 5))
-        love.graphics.pop()
-        love.graphics.pop()
-
         if love.timer.getTime() - v.added >= 0.5 then
             table.remove(projectiles, k)
+        else
+            love.graphics.push()
+            love.graphics.translate(v.x, v.y)
+            love.graphics.push()
+            love.graphics.rotate(v.angle)
+            love.graphics.rectangle("fill", 0, 0, ((love.timer.getTime() - v.added) / 0.3)  * v.len, 5 - (((love.timer.getTime() - v.added) / 0.5) * 5))
+            love.graphics.pop()
+            love.graphics.pop()
         end
     end
 

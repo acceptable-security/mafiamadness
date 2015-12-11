@@ -1,4 +1,3 @@
-local Entities = require("shared/entities")
 local mp = require("shared/MessagePack")
 
 require "enet"

@@ -1,6 +1,7 @@
 local Net = require("server/net")
-local Entities = require("shared/entities")
 local AssetManager = require("shared/AssetManager")
+
+require "shared/json/json"
 
 function tprint (tbl, indent)
   if not indent then indent = 0 end
@@ -57,7 +58,7 @@ function killPlayer(id)
     end
 
     if n ~= -1 then
-        table.remove(players, k)
+        table.remove(players, n)
     end
 end
 
@@ -68,6 +69,12 @@ function love.load(args)
     world = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
     world:setCallbacks(function (a, b, col)
         x, y = col:getNormal()
+        x = math.floor(0.5 + x)
+        y = math.floor(0.5 + y)
+
+        if x ~= 0 and y ~= 1 then
+            return
+        end
 
         if a:getBody():getUserData() then
             if not a:getBody():getUserData().numContacts or a:getBody():getUserData().numContacts < 0  then
@@ -86,6 +93,8 @@ function love.load(args)
         end
     end, function(a, b, col)
         x, y = col:getNormal()
+        x = math.floor(0.5 + x)
+        y = math.floor(0.5 + y)
 
         if x ~= 0 and y ~= 1 then
             return
@@ -113,60 +122,6 @@ function love.load(args)
     assetMgr = AssetManager.new {
         world = world;
     }
-
-    print("loaded " .. assetMgr:load {
-        name = "box";
-        file = "shared/assets/png/block.png";
-        bodyType = "static";
-        type = "object";
-    })
-
-    print("loaded " .. assetMgr:load {
-        name = "otherbox";
-        file = "shared/assets/png/ground.png";
-        bodyType = "static";
-        type = "object";
-    })
-
-    print("loaded " .. assetMgr:load {
-        name = "player";
-        rotable = false;
-        friction = 0.1;
-        file = {
-            weapon = "shared/assets/png/key_red.png";
-            root = {
-                "shared/assets/png/character/front.png"
-            };
-            walking = {
-                "shared/assets/png/character/walk/walk0001.png";
-                "shared/assets/png/character/walk/walk0002.png";
-                "shared/assets/png/character/walk/walk0003.png";
-                "shared/assets/png/character/walk/walk0004.png";
-                "shared/assets/png/character/walk/walk0005.png";
-                "shared/assets/png/character/walk/walk0006.png";
-                "shared/assets/png/character/walk/walk0007.png";
-                "shared/assets/png/character/walk/walk0008.png";
-                "shared/assets/png/character/walk/walk0009.png";
-                "shared/assets/png/character/walk/walk0010.png";
-                "shared/assets/png/character/walk/walk0011.png";
-            };
-            jumping = {
-                "shared/assets/png/character/jump.png";
-            };
-            falling = {
-                "shared/assets/png/character/jump.png";
-            }
-        };
-        type = "player";
-    })
-
-    print("loaded " .. assetMgr:load {
-        name = "coin";
-        file = "shared/assets/png/coin_gold.png";
-        bodyType = "dynamic";
-        type = "object";
-        collision = { 10 };
-    })
 
     objectID = 0
 
@@ -324,9 +279,16 @@ function love.load(args)
         end;
     }
 
-    createObject("box", 0, 200)
-    createObject("otherbox", 100, 200)
-    createObject("coin", 75, 0)
+    local content, _ = love.filesystem.read("server/level1.json")
+    local obj = json.decode(content)
+
+    for _, v in ipairs(obj.assets) do
+        assetMgr:load(v)
+    end
+
+    for _, v in ipairs(obj.objects) do
+        createObject(v.asset, v.x, v.y)
+    end
 end
 
 function love.keypressed(k)
@@ -349,7 +311,9 @@ function love.update(dt)
         end
 
         for _, o in ipairs(players) do
-            net:update(k.peer, o.objectID, o.obj)
+            if o.obj ~= nil then
+                net:update(k.peer, o.objectID, o.obj)
+            end
         end
     end
 end

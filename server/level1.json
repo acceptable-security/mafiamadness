@@ -1,0 +1,72 @@
+{
+    "assets": [
+        {
+            "name": "box",
+            "file": "shared/assets/png/block.png",
+            "bodyType": "static",
+            "type": "object"
+        },
+        {
+            "name": "otherbox",
+            "file": "shared/assets/png/ground.png",
+            "bodyType": "static",
+            "type": "object"
+        },
+        {
+            "name": "coin",
+            "file": "shared/assets/png/coin_gold.png",
+            "bodyType": "dynamic",
+            "type": "object",
+            "collision": [ 15 ]
+        },
+        {
+            "name": "player",
+            "rotable": false,
+            "friction": 0.1,
+            "type": "player",
+            "file": {
+                "weapon": "shared/assets/png/key_red.png",
+                "root": [
+                    "shared/assets/png/character/front.png"
+                ],
+                "walking": [
+                    "shared/assets/png/character/walk/walk0001.png",
+                    "shared/assets/png/character/walk/walk0002.png",
+                    "shared/assets/png/character/walk/walk0003.png",
+                    "shared/assets/png/character/walk/walk0004.png",
+                    "shared/assets/png/character/walk/walk0005.png",
+                    "shared/assets/png/character/walk/walk0006.png",
+                    "shared/assets/png/character/walk/walk0007.png",
+                    "shared/assets/png/character/walk/walk0008.png",
+                    "shared/assets/png/character/walk/walk0008.png",
+                    "shared/assets/png/character/walk/walk0009.png",
+                    "shared/assets/png/character/walk/walk0010.png",
+                    "shared/assets/png/character/walk/walk0011.png"
+                ],
+                "jumping": [
+                    "shared/assets/png/character/jump.png"
+                ],
+                "falling": [
+                    "shared/assets/png/character/jump.png"
+                ]
+            }
+        }
+    ],
+    "objects": [
+        {
+            "asset": "box",
+            "x": 0,
+            "y": 200
+        },
+        {
+            "asset": "otherbox",
+            "x": 70,
+            "y": 200
+        },
+        {
+            "asset": "coin",
+            "x": 70,
+            "y": 0
+        }
+    ]
+}

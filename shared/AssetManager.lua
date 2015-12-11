@@ -186,6 +186,7 @@ function Asset.new(asmgr, self)
         self.move = function (obj, mvt)
             if mvt.up then
                 if obj.numContacts ~= nil and obj.numContacts > 0 then
+                    print("JUMP " .. obj.numContacts)
                     if not obj.lastJumpTime then
                         obj.lastJumpTime = love.timer.getTime()
                         obj.body:applyLinearImpulse(0, obj.body:getMass() * love.physics.getMeter()*-5)
