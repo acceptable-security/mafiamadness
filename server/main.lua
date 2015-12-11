@@ -43,6 +43,24 @@ function createObject(asset, x, y)
     };
 end
 
+function killPlayer(id)
+    local n = -1
+    for k, v in ipairs(players) do
+        net:destroy(v.peer, id)
+
+        if v.objectID == id then
+            print("DEST")
+            v.obj.fixture:destroy()
+            v.obj.body:destroy()
+            n = k
+        end
+    end
+
+    if n ~= -1 then
+        table.remove(players, k)
+    end
+end
+
 function love.load(args)
     love.physics.setMeter(64)
     gravity = 9.81
@@ -276,7 +294,7 @@ function love.load(args)
                 local y = d.obj.body:getY() + (len * math.sin(d.obj.wepAngle))
                 local x = d.obj.body:getX() + (len * math.cos(d.obj.wepAngle))
 
-                print("(" .. d.obj.body:getX() .. ", " .. d.obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
+                -- print("(" .. d.obj.body:getX() .. ", " .. d.obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
 
                 for k, v in ipairs(players) do
                     net:shoot(v.peer, d.objectID)
@@ -286,16 +304,18 @@ function love.load(args)
                     local b = fixture:getBody()
 
                     if b == d.obj.body then
-                        print("AYY")
                         return 1
                     end
-
-                    print("BUTTS")
 
                     local data = b:getUserData()
 
                     if data and data.asset == "player" then
-                        data.body:applyLinearImpulse(0, -1000)
+                        for _, v in ipairs(players) do
+                            if v.obj == data then
+                                print("KILL " .. v.objectID)
+                                killPlayer(v.objectID)
+                            end
+                        end
                     end
 
                     return 0

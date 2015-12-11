@@ -67,7 +67,7 @@ function love.load(arg)
                 return
             end
 
-            if objects[data.id] then
+            if objects[data.id] ~= nil then
                 if data.wepAngle then
                     objects[data.id].wepAngle = data.wepAngle
                 else
@@ -105,7 +105,15 @@ function love.load(arg)
         end;
 
         destructionCallback = function(data)
-            table.remove(objects, data.id)
+            if data.id == myID then
+                myID = nil
+            end
+
+            if objects[data.id] then
+                objects[data.id].fixture:destroy()
+                objects[data.id].body:destroy()
+                objects[data.id] = nil
+            end
         end;
 
         assetCallback = function(data)
@@ -128,24 +136,14 @@ function love.load(arg)
                 angle = o.wepAngle;
                 added = love.timer.getTime();
             })
-
-            print("(" .. obj.body:getX() .. ", " .. obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
-
-            ourWorld:rayCast(o.body:getX(), o.body:getY(), x, y, function (fixture, x, y, xn, yn, fraction)
-                local b = fixture:getBody()
-                local d = b:getUserData()
-
-                if d and d.asset == "player" then
-                    print("HIT!")
-                    d.body:applyLinearImpulse(0, -1000)
-                end
-
-                return 0
-            end)
         end;
 
         controlCallback = function(data)
-            myID = data.id
+            if data.id == -1 then
+                myID = nil
+            else
+                myID = data.id
+            end
         end;
     }
 
@@ -221,7 +219,7 @@ function love.keypressed(k)
         elseif k == "p" then
             prediction = not prediction
         elseif k == "q" then
-            if objects[myID] then
+            if myID and objects[myID] then
                 wep = not wep
 
                 if not wep then
@@ -296,7 +294,7 @@ function love.update(dt)
         empty = false
     end
 
-    if prediction and myID and objects[myID] then
+    if prediction and myID ~= nil and objects[myID] ~= nil then
         objects[myID]:move(mvt)
 
         ourWorld:update(0.017)
@@ -314,6 +312,8 @@ function love.update(dt)
     if objects[myID] then
         camera:setPosition((objects[myID].body:getX() + 5 - (love.graphics.getWidth() / 2)) / 2,
                            (objects[myID].body:getY() + 5 - (love.graphics.getHeight() / 2)) / 2)
+    else
+        camera:setPosition(love.mouse.getX() / 2, love.mouse.getY() / 2)
     end
 end
 
