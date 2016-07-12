@@ -6,15 +6,16 @@ mp.set_number('float')
 mp.set_array('with_hole')
 mp.set_string('string')
 
-local connection_pktid = 0x01
-local creation_pkktid = 0x02
-local movement_pktid = 0x03
-local update_pktid = 0x04
-local destruction_pktid = 0x05
-local chat_pktid = 0x06
-local asset_pktid = 0x07
-local shoot_pktid = 0x08
-local control_pktid = 0x09
+local connection_pktid = 1
+local creation_pkktid = 2
+local movement_pktid = 3
+local update_pktid = 4
+local destruction_pktid = 5
+local chat_pktid = 6
+local asset_pktid = 7
+local shoot_pktid = 8
+local control_pktid = 9
+local game_pktid = 10
 
 local clients = {}
 
@@ -45,7 +46,7 @@ function Net.new(self)
         return nil
     end
 
-    self.host = enet.host_create(self.ip, nil, 10)
+    self.host = enet.host_create(self.ip, nil, 11)
     self.server = nil
     self.connected = false
 
@@ -85,6 +86,16 @@ function Net:createObject(peer, id, obj)
     }
 
     peer:send(mp.pack(data), creation_pktid, "reliable")
+end
+
+function Net:gameState(peer, state, arg)
+    local data = {
+        state = state;
+    }
+
+    if arg then data.arg = arg end
+
+    peer:send(mp.pack(data), game_pktid, "reliable")
 end
 
 function Net:control(peer, id)

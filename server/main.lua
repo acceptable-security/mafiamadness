@@ -26,7 +26,7 @@ function newObject(asset, x, y)
     local id = objectID
     objectID = objectID + 1
 
-    for _, v in pairs(players) do
+    for _, v in pairs(peers) do
         net:createObject(v.peer, id, obj)
     end
 
@@ -46,24 +46,154 @@ end
 
 function killPlayer(id)
     local n = -1
-    for k, v in ipairs(players) do
-        net:destroy(v.peer, id)
+    local p = nil
 
+    for _, v in ipairs(peers) do
+        net:destroy(v.peer, id)
+    end
+
+    for k, v in ipairs(players) do
         if v.objectID == id then
-            print("DEST")
+            p = v.peer
             v.obj.fixture:destroy()
             v.obj.body:destroy()
             n = k
+            table.remove(players, k)
+            break
         end
     end
 
     if n ~= -1 then
-        table.remove(players, n)
+        if gameState == 1 then
+            for k, v in ipairs(innos) do
+                if v == id then
+                    table.remove(innos, k)
+                end
+            end
+
+            for k, v in ipairs(mafs) do
+                if v == id then
+                    table.remove(mafs, k)
+                end
+            end
+
+            if #mafs == 0 or #innos == 0 then
+                endGame()
+            end
+        else
+            for _, v in ipairs(peers) do
+                if v.peer == p then
+                    respawn(v)
+                    break
+                end
+            end
+        end
     end
 end
 
+function respawn(v)
+    pobj = {
+        peer = v.peer;
+        name = v.name;
+        objectID = nil;
+        obj = nil;
+    }
+
+    pobj.obj, pobj.objectID = newObject("player", math.random(0, 300), 0) -- TODO: spawn points
+
+    if pobj.obj == nil then
+        print("OH FUCK")
+    end
+
+    table.insert(players, pobj)
+
+    net:control(v.peer, pobj.objectID)
+
+    return pobj.objectID
+end
+
+function startGame()
+    if #peers < 3 then
+        return
+    end
+
+    local tmp = {}
+
+    for _, v in ipairs(players) do table.insert(tmp, v.objectID) end
+
+    for _, v in ipairs(tmp) do
+        killPlayer(v)
+    end
+
+    players = {}
+
+    local mafC = math.floor(0.5 + (#peers / 3.5))
+
+    innos = {}
+    mafs = {}
+
+    for _, v in ipairs(peers) do
+        table.insert(innos, respawn(v))
+    end
+
+    for i = 1, mafC do
+        local n = math.random(1, #innos)
+        local pl = table.remove(innos, n)
+
+        table.insert(mafs, pl)
+
+        for _, v in ipairs(players) do
+            if v.objectID == pl then
+                net:gameState(v.peer, 0, 1) -- NEW / MAF
+            end
+        end
+    end
+
+    for _, id in ipairs(innos) do
+        for _, v in ipairs(players) do
+            if v.objectID == id then
+                net:gameState(v.peer, 0, 0) -- NEW / INNO
+            end
+        end
+    end
+
+    gameState = 1
+end
+
+function endGame()
+    local winner = ""
+
+    if #mafs > 0 then
+        winner = "mafia"
+    elseif #innos > 0 then
+        winner = "innocents"
+    end
+
+    local tmp = {}
+
+    for _, v in ipairs(players) do table.insert(tmp, v.objectID) end
+
+    for _, v in ipairs(tmp) do
+        killPlayer(v)
+    end
+
+    players = {}
+
+    for _, k in ipairs(peers) do
+        respawn(k)
+        net:gameState(k.peer, 1)
+        net:msg(k.peer, "WORLD", "The " .. winner .. " have won")
+    end
+
+    gameState = 0
+    innos = {}
+    mafs = {}
+end
+
 function love.load(args)
+    love.window.setMode(300, 300)
     love.physics.setMeter(64)
+    gameState = 0
     gravity = 9.81
 
     world = love.physics.newWorld(0, gravity * love.physics.getMeter(), true)
@@ -118,6 +248,7 @@ function love.load(args)
     end, _, _)
 
     players = {}
+    peers = {}
 
     assetMgr = AssetManager.new {
         world = world;
@@ -144,6 +275,11 @@ function love.load(args)
 
             table.insert(players, pobj)
 
+            table.insert(peers, {
+                peer = peer;
+                name = data.name;
+            })
+
             for _, k in pairs(assetMgr.assets) do
                 net:createAsset(peer, k)
             end
@@ -161,6 +297,12 @@ function love.load(args)
 
         disconnectCallback = function (peer)
             d = nil
+
+            for k, v in ipairs(peers) do
+                if v.peer == peer then
+                    table.remove(peers, k)
+                end
+            end
 
             for k, v in ipairs(players) do
                 if v.peer == peer then
@@ -184,7 +326,7 @@ function love.load(args)
             d = nil
 
             for k, v in ipairs(players) do
-                if v.peer == peer then
+                if v.peer == peer and v.obj ~= nil then
                     d = v
                     break
                 end
@@ -206,8 +348,9 @@ function love.load(args)
 
             d = nil
 
-            for k, v in ipairs(players) do
+            for _, v in ipairs(peers) do
                 if v.peer == peer then
+                    print("FOUND")
                     d = v
                     break
                 end
@@ -215,7 +358,7 @@ function love.load(args)
 
             if d then
                 if data.loc == "global" then
-                    for k, v in ipairs(players) do
+                    for k, v in ipairs(peers) do
                         if v.peer ~= peer then
                             net:msg(v.peer, d.name, data.msg)
                         end
@@ -249,8 +392,6 @@ function love.load(args)
                 local y = d.obj.body:getY() + (len * math.sin(d.obj.wepAngle))
                 local x = d.obj.body:getX() + (len * math.cos(d.obj.wepAngle))
 
-                -- print("(" .. d.obj.body:getX() .. ", " .. d.obj.body:getY() .. ") -> (" .. x .. ", " .. y .. ")")
-
                 for k, v in ipairs(players) do
                     net:shoot(v.peer, d.objectID)
                 end
@@ -267,7 +408,6 @@ function love.load(args)
                     if data and data.asset == "player" then
                         for _, v in ipairs(players) do
                             if v.obj == data then
-                                print("KILL " .. v.objectID)
                                 killPlayer(v.objectID)
                             end
                         end
@@ -294,6 +434,12 @@ end
 function love.keypressed(k)
     if k == 'escape' then
         love.event.quit()
+    elseif k == ' ' then
+        if gameState == 0 then
+            startGame()
+        else
+            endGame()
+        end
     elseif k == 'w' then
         createObject("box", math.random(100, 1000), math.random(100, 300))
     end
@@ -303,7 +449,7 @@ function love.update(dt)
     world:update(0.017)
     net:listen()
 
-    for _, k in ipairs(players) do
+    for _, k in ipairs(peers) do
         for _, o in ipairs(objects) do
             if not o.static then
                 net:update(k.peer, o.objectID, o.obj)
@@ -319,6 +465,12 @@ function love.update(dt)
 end
 
 function love.draw(dt)
-    love.graphics.print(#players .. " Players Active")
+    love.graphics.print(#peers .. " Players Active")
     love.graphics.print(objectID .. " current Object ID", 0, 10)
+
+    if gameState == 0 then
+        love.graphics.print("Press Space to begin the game", (love.graphics.getWidth() - love.graphics.getFont():getWidth("Press Space to begin the game")) / 2, 30)
+    else
+        love.graphics.print("Press Space to end the game", (love.graphics.getWidth() - love.graphics.getFont():getWidth("Press Space to end the game")) / 2, 30)
+    end
 end

@@ -6,15 +6,16 @@ mp.set_number('float')
 mp.set_array('with_hole')
 mp.set_string('string')
 
-local connection_pktid = 0x01
-local creation_pkktid = 0x02
-local movement_pktid = 0x03
-local update_pktid = 0x04
-local destruction_pktid = 0x05
-local chat_pktid = 0x06
-local asset_pktid = 0x07
-local shoot_pktid = 0x08
-local control_pktid = 0x09
+local connection_pktid = 1
+local creation_pkktid = 2
+local movement_pktid = 3
+local update_pktid = 4
+local destruction_pktid = 5
+local chat_pktid = 6
+local asset_pktid = 7
+local shoot_pktid = 8
+local control_pktid = 9
+local game_pktid = 10
 
 local clients = {}
 
@@ -54,7 +55,7 @@ function Net.new(self)
 end
 
 function Net:connect(ip)
-    self.server = self.host:connect(ip, 10)
+    self.server = self.host:connect(ip, 11)
 end
 
 function Net:join(name, ver)
@@ -113,6 +114,10 @@ function Net:parse(channel, data)
     elseif channel == control_pktid then
         if self.controlCallback then
             self.controlCallback(mp.unpack(data))
+        end
+    elseif channel == game_pktid then
+        if self.gameCallback then
+            self.gameCallback(mp.unpack(data))
         end
     end
 end

@@ -50,6 +50,7 @@ function love.load(arg)
         end;
 
         creationCallback = function(data)
+            print("CREA" .. data.id)
             objects[data.id] = assetMgr:inst(data.asset, data.px, data.py)
             objects[data.id].body:setLinearVelocity(data.vx, data.vy)
             objects[data.id].body:setAngle(data.a)
@@ -105,11 +106,19 @@ function love.load(arg)
         end;
 
         destructionCallback = function(data)
+            print("WEW" .. data.id)
+
             if data.id == myID then
+                print("mine")
                 myID = nil
+
+                if ui.roll ~= "" then
+                    ui.roll = "Dead"
+                end
             end
 
-            if objects[data.id] then
+            if objects[data.id] ~= nil then
+                print("DEST" .. data.id)
                 objects[data.id].fixture:destroy()
                 objects[data.id].body:destroy()
                 objects[data.id] = nil
@@ -147,10 +156,24 @@ function love.load(arg)
         end;
 
         controlCallback = function(data)
+            print("CTRL" .. data.id)
+
             if data.id == -1 then
                 myID = nil
             else
                 myID = data.id
+            end
+        end;
+
+        gameCallback = function(data)
+            if data.state == 0 then -- NEW
+                if data.arg == 0 then
+                    ui.roll = "an Innocent"
+                elseif data.arg == 1 then
+                    ui.roll = "a Mafia"
+                end
+            elseif data.state == 1 then -- OVER
+                ui.roll = ""
             end
         end;
     }
@@ -254,7 +277,7 @@ function love.keypressed(k)
                 if #ui.tmpMsg < 1 then
                     return
                 end
-                
+
                 net:join(ui.tmpMsg, 1)
                 myName = ui.tmpMsg
                 ui.tmpMsg = ""
@@ -273,8 +296,13 @@ function love.keypressed(k)
                 ui.tmpMsg = ui.tmpMsg:sub(1, #ui.tmpMsg - 1)
             end
         elseif k == "escape" then
-            ui.tmpMsg = ""
-            ui.chatOpen = false
+            if ui.nameEntryOpen then
+                net:close()
+                love.event.quit()
+            else
+                ui.tmpMsg = ""
+                ui.chatOpen = false
+            end
         end
     end
 end

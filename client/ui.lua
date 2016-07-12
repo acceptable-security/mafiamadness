@@ -1,5 +1,5 @@
 local UI = {
-    roll = "an Innocent";
+    roll = "";
     equipped = nil;
     timer = "00:00";
     transparency = 0.6;
@@ -21,6 +21,7 @@ function UI.new(self)
 
     self.chatOpen = self.chatOpen or false
     self.nameEntryOpen = self.nameEntryOpen or false
+
     self.tmpMsg = ""
     self.messages = self.messages or {}
 
@@ -68,7 +69,7 @@ function UI:draw()
 
     if self.nameEntryOpen then
         love.graphics.setColor(25, 25, 25, 100)
-        love.graphics.rectangle("fill", 0, 0, love.window.getWidth(), love.window.getHeight())
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
         love.graphics.setColor(255, 255, 255)
         love.graphics.setFont(self.clockFont)
 
@@ -86,14 +87,14 @@ function UI:draw()
         love.graphics.printf(tot, 10, 10, 200)
     end
 
-    if self.roll ~= nil then
+    if self.roll ~= "" then
         love.graphics.setColor(25, 25, 25)
         love.graphics.setFont(self.mafiaFont)
         local text = "You are " .. self.roll
-        love.graphics.print(text, love.window.getWidth() - self.mafiaFont:getWidth(text), love.window.getHeight() - 60)
+        love.graphics.print(text, love.graphics.getWidth() - self.mafiaFont:getWidth(text), love.graphics.getHeight() - 60)
     end
 
-    if self.timer ~= nil then
+    if self.timer ~= "" then
         love.graphics.setFont(self.clockFont)
         love.graphics.setColor(0, 0, 0)
         love.graphics.printf(self.timer, (love.graphics.getWidth() / 2) - self.clockFont:getWidth(self.timer), 0, 100, "center")
